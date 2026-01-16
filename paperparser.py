@@ -114,9 +114,9 @@ def parse_threshold(paper_path: str):
         data.iloc[:, :-1] = data.iloc[:, :-1].astype(int)
 
     if IGCSE == 3:
-        a2_table = data.copy().loc[(data["max mark"] >= 131) | (data["9"] >= 0), :]
+        a2_table = data.copy().loc[(data["9"] > 0), :]
     else: 
-        a2_table = data.copy().loc[(data["max mark"] >= 131) | (data["a*"] >= 0), :]
-        as_table = data.copy().loc[data["max mark"]< 131,:]
+        a2_table = data.copy().loc[(data["a*"] > 0), :]
+        as_table = data.copy().loc[data["max mark"]< 200,:]
 
     return data, 1, a2_table
