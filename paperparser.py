@@ -2,20 +2,27 @@ from pypdf import PdfReader
 import pandas as pd
 import re
 
+Test = False
+
 def parse_threshold(paper_path: str):
     reader = PdfReader(paper_path)
-    if 'IGCSE' in paper_path and "9-1" not in paper_path and "additional-mathematics" not in paper_path:
+    ascheck = ('as-level' in paper_path.lower() 
+            or '8681' in paper_path)
+
+    if 'IGCSE' in paper_path and "9-1" not in paper_path:
         IGCSE = 2
     elif "9-1" in paper_path:
         IGCSE = 3
     else:
         IGCSE = 0
-        
+    if 'additional-mathematics' in paper_path.lower():
+        IGCSE -= 2
     text = ""
     # Get all pages into one big string
     for page in reader.pages:
         text += (page.extract_text())
     text = text.split("\n")
+
 
     # Removing empty lines (parser generated them idk)
     text = [i.strip() for i in text 
@@ -42,16 +49,31 @@ def parse_threshold(paper_path: str):
             and "exam" not in i
             and "A2-only" not in i
             and "email" not in i
-            and "Core" not in i]
-
-
+            and "for" not in i
+            and "dis" not in i
+            and "AS Level" not in i]
+    text = [i for i in text if i != ""]
+    if not text[0][0].isalpha() and text[0][0] != "–":
+        text = text[1:]
+    if text[0][0].isdigit():
+        text = text[1:]
+        
+        
     for i in range(len(text)):
-        if len(text[i]) < 7:
+        if len(text[i]) < 20:
             try:
                 text[i-1] = text[i-1] + " " + text[i] + " " + text[i+1]
             except:
                 pass
+
+
+    text  = [i for i in text if i not in ["", " "]]
+    for i in range(len(text)):
+        if text[i][0].isdigit():
+            text[i-1] = text[i-1] + " " + text[i]
     text = [item for item in text if re.search(r'[A-Za-z]', item)]
+
+
 
     # Finding the Date
     date_extractor = reader.pages[0].extract_text()
@@ -85,6 +107,8 @@ def parse_threshold(paper_path: str):
     data = pd.DataFrame(columns=table_header)
     data.columns = data.columns.str.lower()
 
+    text = [i.replace(' / ','/') for i in text if len(i) > 7 and not i[0].isdigit()]
+
     j = 0
     for i in text:
         if i[0].isdigit() or i[0].isspace():
@@ -92,31 +116,53 @@ def parse_threshold(paper_path: str):
             continue
         i = i.replace(", ", ",")
         i = i.split(" ")
+        i = [k for k in i if k != ""]
         if "(" in str(i[1]) or ")" in str(i[1]):
             i[0] = i[0] + " " + i[1]
             i.pop(1)
+        if i[3] in i[2]:
+            i.pop(3)
+            
+        try:
+            i[1] = int(i[1])
+        except:
+            pass   
+            
+        if ascheck:
+            i = i[:3] + [0] + i[3:]
+        try:
+            if i[8+IGCSE] in i[1]:
+                i = i[:8+IGCSE]
+        except:
+            pass
+        untrimmed = True
+        while untrimmed:
+            if not i[-1].isdigit():
+                i = i[:-1]
+            else:
+                untrimmed = False
         if len(i) < 9+IGCSE:
             i = i[:1] + [0] + i[1:]
-        i = [k for k in i if k != ""]
+        
         if len(i) > 9+IGCSE:
             i = i[:9+IGCSE]
+    
         data.loc[j] = i
         j += 1
         
-    data["option"] = data["option"] + " " + data["combination"]
+    data["option"] = data["option"].astype(str) + " " + data["combination"].astype(str)
     data.drop(columns=["combination"], inplace=True)
     data.set_index("option", inplace=True)
     data["date"] = date_extractor
     data.replace("–", 0, inplace=True)
     try:
-        data.iloc[:, :-1] = data.iloc[:, :-1].astype(int)
+        data.iloc[:, :-2] = data.iloc[:, :-2].astype(int)
     except:
-        data.iloc[:, :-1] = data.iloc[:, :-1].astype(int)
-
-    if IGCSE == 3:
-        a2_table = data.copy().loc[(data["9"] > 0), :]
-    else: 
-        a2_table = data.copy().loc[(data["a*"] > 0), :]
-        as_table = data.copy().loc[data["max mark"]< 200,:]
+        data.iloc[:, :-2] = data.iloc[:, :-2].astype(int)
+    if IGCSE != 3:
+        a2_table = data.copy().loc[(data["max mark"] >= 131) | (data["a*"] >= 131), :]
+    else:
+        a2_table = data.copy().loc[(data["max mark"] >= 131) | (data["9"] >= 131), :]
+    as_table = data.copy().loc[data["max mark"]< 131,:]
 
     return data, 1, a2_table
