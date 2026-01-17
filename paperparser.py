@@ -17,6 +17,8 @@ def parse_threshold(paper_path: str):
         IGCSE = 0
     if 'additional-mathematics' in paper_path.lower():
         IGCSE -= 2
+    if 'mathematics-us' in paper_path.lower():
+        IGCSE -= 2
     text = ""
     # Get all pages into one big string
     for page in reader.pages:
@@ -45,13 +47,17 @@ def parse_threshold(paper_path: str):
             and "mark" not in i
             and "available" not in i
             and "A B C D E" not in i
+            and "AA BB CC DD EE" not in i
             and "threshold" not in i
             and "exam" not in i
             and "A2-only" not in i
             and "email" not in i
             and "for" not in i
             and "dis" not in i
-            and "AS Level" not in i]
+            and "AS Level" not in i
+            and "Speaking" not in i
+            and not re.search(r'(\d{4})',i)
+            and "Extended" not in i]
     text = [i for i in text if i != ""]
     if not text[0][0].isalpha() and text[0][0] != "–":
         text = text[1:]
@@ -120,7 +126,7 @@ def parse_threshold(paper_path: str):
         if "(" in str(i[1]) or ")" in str(i[1]):
             i[0] = i[0] + " " + i[1]
             i.pop(1)
-        if i[3] in i[2]:
+        if i[3] in i[2] and i[3] != "–":
             i.pop(3)
             
         try:
@@ -137,7 +143,7 @@ def parse_threshold(paper_path: str):
             pass
         untrimmed = True
         while untrimmed:
-            if not i[-1].isdigit():
+            if not i[-1].isdigit() and i[-1] != "–":
                 i = i[:-1]
             else:
                 untrimmed = False
