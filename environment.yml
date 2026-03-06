@@ -1,0 +1,16 @@
+name: r-igcse
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.12.12
+  - ipykernel
+  - ipython
+
+  - requests
+  - scrapy
+  - tqdm
+
+  - pandas
+  - numpy
+  - click
