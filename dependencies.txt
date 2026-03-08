@@ -1,6 +1,0 @@
-click
-tqdm
-numpy
-pandas
-requests
-scrapy
