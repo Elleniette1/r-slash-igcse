@@ -79,8 +79,8 @@
       color: #067647;
       font-weight: 700;
     }
-    .status-review {
-      color: #b54708;
+    .status-ungraded {
+      color: #d92d20;
       font-weight: 700;
     }
     .status-invalid {
@@ -130,7 +130,7 @@
   <div class="container">
     <div class="card">
       <h1>A Level Marks Calculator</h1>
-      <p>Enter subject code, option, and marks to calculate grades using the latest A Level thresholds from <code>output/tables</code>.</p>
+      <p>Enter subject code, option, and your total combined raw mark across the option's components. Grades are awarded by comparing your raw mark directly to the published CAIE grade threshold boundaries (A*, A, B, C, D, E; U = Ungraded).</p>
       <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
       <div class="toolbar">
         <button id="addRow" type="button">Add Subject Row</button>
@@ -143,9 +143,9 @@
               <th>Option</th>
               <th>Raw Mark</th>
               <th>Max Mark</th>
-              <th>Converted PUM</th>
+              <th>% of Max</th>
               <th>Grade</th>
-              <th>Status (Session)</th>
+              <th>Result (Session)</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -154,9 +154,9 @@
       </div>
       <div class="metrics">
         <div class="metric">Valid Subjects<strong id="subjectCount">0</strong></div>
-        <div class="metric">Average PUM<strong id="avgPum">0.0</strong></div>
+        <div class="metric">Passed (A*–E)<strong id="gradedCount">0</strong></div>
         <div class="metric">Total Raw Marks<strong id="totalRaw">0</strong></div>
-        <div class="metric">Overall Status<strong id="overallStatus">N/A</strong></div>
+        <div class="metric">Overall Result<strong id="overallStatus">N/A</strong></div>
       </div>
     </div>
 
@@ -168,8 +168,8 @@
           <canvas id="rawChart" width="500" height="220" role="img" aria-label="Bar chart showing raw marks by subject"></canvas>
         </div>
         <div>
-          <p><strong>PUM Trend</strong></p>
-          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing PUM trend across subjects"></canvas>
+          <p><strong>% of Max by Subject</strong></p>
+          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing % of max mark across subjects"></canvas>
         </div>
       </div>
     </div>
@@ -441,17 +441,18 @@
           return;
         }
 
-        const pum = Math.round((raw / max) * 1000) / 10;
+        const pct = Math.round((raw / max) * 1000) / 10;
         const grade = gradeFromThresholds(raw, thresholdRow);
-        const status = grade === "U" ? "Review" : "Pass";
+        const isGraded = grade !== "U";
+        const statusLabel = isGraded ? "Pass" : "U – Ungraded";
         const session = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
 
-        pumCell.textContent = pum.toFixed(1);
+        pumCell.textContent = pct.toFixed(1) + "%";
         gradeCell.textContent = grade;
-        statusCell.textContent = `${status} (${session.trim()})`;
-        statusCell.className = `readonly status ${status === "Pass" ? "status-pass" : "status-review"}`;
+        statusCell.textContent = `${statusLabel} (${session.trim()})`;
+        statusCell.className = `readonly status ${isGraded ? "status-pass" : "status-ungraded"}`;
 
-        validRows.push({ subject: label, raw, pum });
+        validRows.push({ subject: label, raw, pct, grade });
       }));
 
       if (runId !== recalculateRunId) return;
@@ -476,19 +477,20 @@
 
       const subjectCount = validRows.length;
       const totalRaw = validRows.reduce((sum, row) => sum + row.raw, 0);
-      const avgPum = subjectCount ? validRows.reduce((sum, row) => sum + row.pum, 0) / subjectCount : 0;
+      const gradedCount = validRows.filter((row) => row.grade !== "U").length;
+      const ungradedCount = subjectCount - gradedCount;
 
       document.getElementById("subjectCount").textContent = String(subjectCount);
       document.getElementById("totalRaw").textContent = totalRaw.toFixed(1);
-      document.getElementById("avgPum").textContent = avgPum.toFixed(1);
+      document.getElementById("gradedCount").textContent = String(gradedCount);
       document.getElementById("overallStatus").textContent = !subjectCount
         ? "N/A"
-        : avgPum >= 40
-          ? "On Track"
-          : "Needs Improvement";
+        : ungradedCount === 0
+          ? "All Passed"
+          : `${ungradedCount} Ungraded`;
 
       drawBarChart("rawChart", validRows.map((r) => r.subject), validRows.map((r) => r.raw), "#1f6feb");
-      drawLineChart("pumChart", validRows.map((r) => r.subject), validRows.map((r) => r.pum), "#7a3cff");
+      drawLineChart("pumChart", validRows.map((r) => r.subject), validRows.map((r) => r.pct), "#7a3cff");
     }
 
     function drawBarChart(canvasId, labels, values, color) {
@@ -533,12 +535,12 @@
       ctx.clearRect(0, 0, w, h);
 
       if (!values.length) {
-        canvas.setAttribute("aria-label", "PUM trend chart: no valid rows to plot");
+        canvas.setAttribute("aria-label", "% of max chart: no valid rows to plot");
         ctx.fillStyle = "#5c6370";
         ctx.fillText("No valid rows to plot.", 12, 30);
         return;
       }
-      canvas.setAttribute("aria-label", "PUM trend chart across subjects");
+      canvas.setAttribute("aria-label", "% of max mark chart across subjects");
 
       const padding = 30;
       const xStep = values.length > 1 ? (w - padding * 2) / (values.length - 1) : 0;
