@@ -1,0 +1,7 @@
+click
+scrapy
+requests
+pandas
+rich
+gmft
+gmft-pymupdf
