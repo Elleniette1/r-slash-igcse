@@ -31,7 +31,7 @@ A standalone calculator page is available at `docs/calculator.html`.
 It provides:
 
 - Dynamic marks table (add/remove/edit rows)
-- Live raw mark -> PUM conversion with validation feedback
+- Live raw mark → grade conversion with validation feedback
 - Threshold-based A Level grade calculation using `output/tables/*_all.csv`
-- Auto-calculated status and summary metrics
-- Synced marks charts (raw marks comparison + PUM trend)
+- Auto-calculated grade summary metrics (passed count, overall result)
+- Synced marks charts (raw marks comparison + % of max by subject)

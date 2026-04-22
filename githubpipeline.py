@@ -170,7 +170,7 @@ def extract():
 def compile():
     ensure_output_dirs()
     csvdir = os.listdir('output/csv')
-    codes = [code[:4] for code in csvdir if code.lower().endswith('.csv') and code[:4].isdigit()]
+    codes = [code[:4] for code in csvdir if code.lower().endswith('.csv') and len(code) >= 4 and code[:4].isdigit()]
     subj = sorted(set(codes))
     for code in subj:
         subj_csv = []
