@@ -23,3 +23,14 @@ Job chain and artifacts:
 - `compile-tables` -> uploads `compiled-tables` artifact (`output/table`)
 
 Artifact retention is set to 30 days.
+
+## IGCSE Marks Calculator UI
+
+A standalone calculator page is available at `calculator.html`.
+
+It provides:
+
+- Dynamic marks table (add/remove/edit rows)
+- Live raw mark -> PUM conversion with validation feedback
+- Auto-calculated grade/status and summary metrics
+- Synced marks charts (raw marks comparison + PUM trend)
