@@ -635,11 +635,11 @@
         const grade = gradeFromThresholds(raw, thresholdRow);
         const isGraded = grade !== "U";
         const statusLabel = isGraded ? "Pass" : "U – Ungraded";
-        const session = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
+        const resultSession = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
 
         pumCell.textContent = pum.toFixed(1);
         gradeCell.textContent = grade;
-        statusCell.textContent = `${statusLabel} (${session.trim()})`;
+        statusCell.textContent = `${statusLabel} (${resultSession.trim()})`;
         statusCell.className = `readonly status ${isGraded ? "status-pass" : "status-ungraded"}`;
 
         validRows.push({ subject: label, raw, pum, grade });
