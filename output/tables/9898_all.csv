@@ -1,0 +1,4 @@
+option,maximum mark after weighting,combination of components,a*,a,b,c,d,e,year,month
+AX,120,"11, 21, 31",103,91,79,68,58,48,2025,mj
+AY,120,"12, 22, 32",103,91,79,68,58,48,2025,mj
+AZ,120,"13, 23, 33",103,91,79,68,58,48,2025,mj

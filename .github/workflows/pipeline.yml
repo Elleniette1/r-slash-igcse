@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: '0 0 1 * *'
 jobs:
-  pipeline:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,3 +18,11 @@ jobs:
       - name: Install dependencies
         run:
           pip install -r requirements.txt
+  pipeline:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: extract schedule
+        run:
+          python pipeline.py 
