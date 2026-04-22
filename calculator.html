@@ -131,7 +131,7 @@
     <div class="card">
       <h1>IGCSE Marks Calculator</h1>
       <p>Enter or edit marks to instantly convert to PUM, view grade/status, and track trends.</p>
-      <div id="errors" class="error-box" aria-live="polite"></div>
+      <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
       <div class="toolbar">
         <button id="addRow" type="button">Add Subject Row</button>
       </div>
@@ -164,11 +164,11 @@
       <div class="charts">
         <div>
           <p><strong>Raw Marks by Subject</strong></p>
-          <canvas id="rawChart" width="500" height="220"></canvas>
+          <canvas id="rawChart" width="500" height="220" role="img" aria-label="Bar chart showing raw marks by subject"></canvas>
         </div>
         <div>
           <p><strong>PUM Trend</strong></p>
-          <canvas id="pumChart" width="500" height="220"></canvas>
+          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing PUM trend across subjects"></canvas>
         </div>
       </div>
     </div>
@@ -176,16 +176,21 @@
 
   <script>
     const defaults = {
-      Mathematics: 200,
+      "Mathematics": 200,
       "English Language": 160,
-      Physics: 160,
-      Chemistry: 160,
-      Biology: 160,
+      "Physics": 160,
+      "Chemistry": 160,
+      "Biology": 160,
       "Computer Science": 150
     };
 
     const marksBody = document.getElementById("marksBody");
     const errorBox = document.getElementById("errors");
+    const MIN_CHART_SCALE = 1;
+    const MIN_BAR_WIDTH = 18;
+    const BAR_GAP = 10;
+    const MAX_LABEL_LENGTH = 8;
+    const DATA_POINT_RADIUS = 3.5;
 
     function gradeFromPum(pum) {
       if (pum >= 90) return "A*";
@@ -201,15 +206,56 @@
 
     function addRow(subject = "", raw = "", max = "") {
       const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="text" class="subject" placeholder="e.g. Mathematics" value="${subject}"></td>
-        <td><input type="number" class="raw" min="0" step="0.1" value="${raw}"></td>
-        <td><input type="number" class="max" min="0.1" step="0.1" value="${max}"></td>
-        <td class="readonly pum">-</td>
-        <td class="readonly grade">-</td>
-        <td class="readonly status">-</td>
-        <td><button type="button" class="secondary remove">Remove</button></td>
-      `;
+      const subjectCell = document.createElement("td");
+      const subjectInput = document.createElement("input");
+      subjectInput.type = "text";
+      subjectInput.className = "subject";
+      subjectInput.placeholder = "e.g. Mathematics";
+      subjectInput.setAttribute("aria-label", "Subject name");
+      subjectInput.value = subject;
+      subjectCell.appendChild(subjectInput);
+
+      const rawCell = document.createElement("td");
+      const rawInput = document.createElement("input");
+      rawInput.type = "number";
+      rawInput.className = "raw";
+      rawInput.min = "0";
+      rawInput.step = "0.1";
+      rawInput.setAttribute("aria-label", "Raw mark");
+      rawInput.value = raw;
+      rawCell.appendChild(rawInput);
+
+      const maxCell = document.createElement("td");
+      const maxInput = document.createElement("input");
+      maxInput.type = "number";
+      maxInput.className = "max";
+      maxInput.min = "0.1";
+      maxInput.step = "0.1";
+      maxInput.setAttribute("aria-label", "Maximum mark");
+      maxInput.value = max;
+      maxCell.appendChild(maxInput);
+
+      const pumCell = document.createElement("td");
+      pumCell.className = "readonly pum";
+      pumCell.textContent = "-";
+
+      const gradeCell = document.createElement("td");
+      gradeCell.className = "readonly grade";
+      gradeCell.textContent = "-";
+
+      const statusCell = document.createElement("td");
+      statusCell.className = "readonly status";
+      statusCell.textContent = "-";
+
+      const actionCell = document.createElement("td");
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "secondary remove";
+      removeButton.setAttribute("aria-label", "Remove this subject row");
+      removeButton.textContent = "Remove";
+      actionCell.appendChild(removeButton);
+
+      row.append(subjectCell, rawCell, maxCell, pumCell, gradeCell, statusCell, actionCell);
       marksBody.appendChild(row);
 
       row.querySelector(".subject").addEventListener("input", () => {
@@ -248,6 +294,7 @@
         const pumCell = row.querySelector(".pum");
         const gradeCell = row.querySelector(".grade");
         const statusCell = row.querySelector(".status");
+        row.querySelector(".remove").setAttribute("aria-label", `Remove ${subject} row`);
 
         if (!Number.isFinite(raw) || !Number.isFinite(max) || max <= 0 || raw < 0 || raw > max) {
           row.classList.add("error");
@@ -259,6 +306,8 @@
           return;
         }
 
+        // Percentage Uniform Mark (PUM): (raw / max) * 100 rounded to 1 decimal place.
+        // Multiplying by 1000 then dividing by 10 keeps a numeric value while rounding to 0.1.
         const pum = Math.round((raw / max) * 1000) / 10;
         const grade = gradeFromPum(pum);
         const status = pum >= 40 ? "Pass" : "Review";
@@ -273,7 +322,17 @@
 
       if (errors.length) {
         errorBox.style.display = "block";
-        errorBox.innerHTML = `<strong>Validation:</strong><ul>${errors.map((e) => `<li>${e}</li>`).join("")}</ul>`;
+        errorBox.textContent = "";
+        const heading = document.createElement("strong");
+        heading.textContent = "Validation:";
+        const list = document.createElement("ul");
+        errors.forEach((message) => {
+          const item = document.createElement("li");
+          item.textContent = message;
+          list.appendChild(item);
+        });
+        errorBox.appendChild(heading);
+        errorBox.appendChild(list);
       } else {
         errorBox.style.display = "none";
         errorBox.textContent = "";
@@ -304,15 +363,17 @@
       ctx.clearRect(0, 0, w, h);
 
       if (!values.length) {
+        canvas.setAttribute("aria-label", "Raw marks chart: no valid rows to plot");
         ctx.fillStyle = "#5c6370";
         ctx.fillText("No valid rows to plot.", 12, 30);
         return;
       }
+      canvas.setAttribute("aria-label", "Raw marks chart by subject");
 
-      const maxValue = Math.max(...values, 1);
+      const maxValue = Math.max(...values, MIN_CHART_SCALE);
       const padding = 30;
       const barAreaWidth = w - padding * 2;
-      const barWidth = Math.max(18, barAreaWidth / values.length - 10);
+      const barWidth = Math.max(MIN_BAR_WIDTH, barAreaWidth / values.length - BAR_GAP);
 
       values.forEach((v, i) => {
         const x = padding + i * (barAreaWidth / values.length) + 4;
@@ -324,7 +385,7 @@
         ctx.fillStyle = "#1a1f36";
         ctx.font = "12px Arial";
         ctx.fillText(String(v.toFixed(1)), x, y - 4);
-        ctx.fillText(labels[i].slice(0, 8), x, h - 10);
+        ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x, h - 10);
       });
     }
 
@@ -336,10 +397,12 @@
       ctx.clearRect(0, 0, w, h);
 
       if (!values.length) {
+        canvas.setAttribute("aria-label", "PUM trend chart: no valid rows to plot");
         ctx.fillStyle = "#5c6370";
         ctx.fillText("No valid rows to plot.", 12, 30);
         return;
       }
+      canvas.setAttribute("aria-label", "PUM trend chart across subjects");
 
       const padding = 30;
       const xStep = values.length > 1 ? (w - padding * 2) / (values.length - 1) : 0;
@@ -348,7 +411,7 @@
       ctx.lineWidth = 2;
       ctx.beginPath();
       values.forEach((v, i) => {
-        const x = padding + i * xStep;
+        const x = values.length === 1 ? w / 2 : padding + i * xStep;
         const y = h - padding - ((h - padding * 2) * v) / 100;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
@@ -356,16 +419,16 @@
       ctx.stroke();
 
       values.forEach((v, i) => {
-        const x = padding + i * xStep;
+        const x = values.length === 1 ? w / 2 : padding + i * xStep;
         const y = h - padding - ((h - padding * 2) * v) / 100;
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.arc(x, y, DATA_POINT_RADIUS, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = "#1a1f36";
         ctx.font = "12px Arial";
         ctx.fillText(v.toFixed(1), x - 10, y - 8);
-        ctx.fillText(labels[i].slice(0, 8), x - 12, h - 10);
+        ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x - 12, h - 10);
       });
     }
 
