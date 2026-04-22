@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IGCSE Marks Calculator</title>
+  <title>A Level Marks Calculator</title>
   <style>
     :root {
       color-scheme: light;
@@ -129,8 +129,8 @@
 <body>
   <div class="container">
     <div class="card">
-      <h1>IGCSE Marks Calculator</h1>
-      <p>Enter or edit marks to instantly convert to PUM, view grade/status, and track trends.</p>
+      <h1>A Level Marks Calculator</h1>
+      <p>Enter subject code, option, and marks to calculate grades using the latest A Level thresholds from <code>output/tables</code>.</p>
       <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
       <div class="toolbar">
         <button id="addRow" type="button">Add Subject Row</button>
@@ -139,12 +139,13 @@
         <table>
           <thead>
             <tr>
-              <th>Subject</th>
+              <th>Subject Code</th>
+              <th>Option</th>
               <th>Raw Mark</th>
               <th>Max Mark</th>
               <th>Converted PUM</th>
               <th>Grade</th>
-              <th>Status</th>
+              <th>Status (Session)</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -175,15 +176,8 @@
   </div>
 
   <script>
-    const defaults = {
-      "Mathematics": 200,
-      "English Language": 160,
-      "Physics": 160,
-      "Chemistry": 160,
-      "Biology": 160,
-      "Computer Science": 150
-    };
-
+    const TABLES_BASE_PATH = "../output/tables";
+    const thresholdsCache = new Map();
     const marksBody = document.getElementById("marksBody");
     const errorBox = document.getElementById("errors");
     const MIN_CHART_SCALE = 1;
@@ -192,28 +186,139 @@
     const MAX_LABEL_LENGTH = 8;
     const DATA_POINT_RADIUS = 3.5;
 
-    function gradeFromPum(pum) {
-      if (pum >= 90) return "A*";
-      if (pum >= 80) return "A";
-      if (pum >= 70) return "B";
-      if (pum >= 60) return "C";
-      if (pum >= 50) return "D";
-      if (pum >= 40) return "E";
-      if (pum >= 30) return "F";
-      if (pum >= 20) return "G";
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === "\"" && inQuotes && next === "\"") {
+          field += "\"";
+          i += 1;
+          continue;
+        }
+        if (char === "\"") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+        if (char === "," && !inQuotes) {
+          row.push(field);
+          field = "";
+          continue;
+        }
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i += 1;
+          row.push(field);
+          if (row.some((value) => value.trim() !== "")) {
+            rows.push(row);
+          }
+          row = [];
+          field = "";
+          continue;
+        }
+        field += char;
+      }
+      row.push(field);
+      if (row.some((value) => value.trim() !== "")) {
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function parseThresholdNumber(value) {
+      if (value === null || value === undefined) return NaN;
+      const cleaned = String(value).trim().replace(/,/g, "");
+      if (!cleaned || cleaned === "–" || cleaned === "-") return NaN;
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : NaN;
+    }
+
+    function monthRank(month) {
+      const key = String(month || "").trim().toLowerCase();
+      if (key === "fm") return 1;
+      if (key === "mj") return 2;
+      if (key === "on") return 3;
+      return 0;
+    }
+
+    function normalizeCsvRows(csvRows) {
+      if (!csvRows.length) return [];
+      const headers = csvRows[0].map((header) => String(header || "").trim().toLowerCase());
+      return csvRows.slice(1).map((values) => {
+        const record = {};
+        headers.forEach((header, index) => {
+          record[header] = String(values[index] ?? "").trim();
+        });
+        return record;
+      });
+    }
+
+    async function getThresholdRows(subjectCode) {
+      const key = subjectCode.trim().toUpperCase();
+      if (!thresholdsCache.has(key)) {
+        thresholdsCache.set(key, (async () => {
+          const response = await fetch(`${TABLES_BASE_PATH}/${key}_all.csv`, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`No threshold table found for subject code ${key}.`);
+          }
+          const text = await response.text();
+          return normalizeCsvRows(parseCsv(text));
+        })());
+      }
+      return thresholdsCache.get(key);
+    }
+
+    function selectLatestThresholdRow(rows, optionCode) {
+      const option = optionCode.trim().toUpperCase();
+      const matching = rows.filter((row) => String(row.option || "").trim().toUpperCase() === option);
+      if (!matching.length) return null;
+      matching.sort((a, b) => {
+        const yearA = Number(a.year) || 0;
+        const yearB = Number(b.year) || 0;
+        if (yearA !== yearB) return yearB - yearA;
+        return monthRank(b.month) - monthRank(a.month);
+      });
+      return matching[0];
+    }
+
+    function gradeFromThresholds(raw, thresholdRow) {
+      const boundaries = [
+        ["A*", parseThresholdNumber(thresholdRow["a*"])],
+        ["A", parseThresholdNumber(thresholdRow.a)],
+        ["B", parseThresholdNumber(thresholdRow.b)],
+        ["C", parseThresholdNumber(thresholdRow.c)],
+        ["D", parseThresholdNumber(thresholdRow.d)],
+        ["E", parseThresholdNumber(thresholdRow.e)]
+      ];
+      for (const [grade, threshold] of boundaries) {
+        if (Number.isFinite(threshold) && raw >= threshold) {
+          return grade;
+        }
+      }
       return "U";
     }
 
-    function addRow(subject = "", raw = "", max = "") {
+    function addRow(subjectCode = "", optionCode = "", raw = "", max = "") {
       const row = document.createElement("tr");
       const subjectCell = document.createElement("td");
       const subjectInput = document.createElement("input");
       subjectInput.type = "text";
-      subjectInput.className = "subject";
-      subjectInput.placeholder = "e.g. Mathematics";
-      subjectInput.setAttribute("aria-label", "Subject name");
-      subjectInput.value = subject;
+      subjectInput.className = "subject-code";
+      subjectInput.placeholder = "e.g. 9709";
+      subjectInput.setAttribute("aria-label", "Subject code");
+      subjectInput.value = subjectCode;
       subjectCell.appendChild(subjectInput);
+
+      const optionCell = document.createElement("td");
+      const optionInput = document.createElement("input");
+      optionInput.type = "text";
+      optionInput.className = "option-code";
+      optionInput.placeholder = "e.g. AY";
+      optionInput.setAttribute("aria-label", "Option code");
+      optionInput.value = optionCode;
+      optionCell.appendChild(optionInput);
 
       const rawCell = document.createElement("td");
       const rawInput = document.createElement("input");
@@ -255,18 +360,8 @@
       removeButton.textContent = "Remove";
       actionCell.appendChild(removeButton);
 
-      row.append(subjectCell, rawCell, maxCell, pumCell, gradeCell, statusCell, actionCell);
+      row.append(subjectCell, optionCell, rawCell, maxCell, pumCell, gradeCell, statusCell, actionCell);
       marksBody.appendChild(row);
-
-      row.querySelector(".subject").addEventListener("input", () => {
-        const subjectInput = row.querySelector(".subject");
-        const maxInput = row.querySelector(".max");
-        const maybeMax = defaults[subjectInput.value.trim()];
-        if (maybeMax && !maxInput.value) {
-          maxInput.value = maybeMax;
-        }
-        recalculate();
-      });
 
       row.querySelectorAll("input").forEach((input) => {
         input.addEventListener("input", recalculate);
@@ -281,20 +376,60 @@
       });
     }
 
-    function recalculate() {
+    let recalculateRunId = 0;
+
+    async function recalculate() {
+      const runId = ++recalculateRunId;
       const rows = Array.from(marksBody.querySelectorAll("tr"));
       const errors = [];
       const validRows = [];
 
-      rows.forEach((row, index) => {
+      await Promise.all(rows.map(async (row, index) => {
         row.classList.remove("error");
-        const subject = row.querySelector(".subject").value.trim() || `Subject ${index + 1}`;
+        const subjectCode = row.querySelector(".subject-code").value.trim().toUpperCase();
+        const optionCode = row.querySelector(".option-code").value.trim().toUpperCase();
+        const label = `${subjectCode || `Subject ${index + 1}`}${optionCode ? `-${optionCode}` : ""}`;
         const raw = Number(row.querySelector(".raw").value);
-        const max = Number(row.querySelector(".max").value);
+        const maxInput = row.querySelector(".max");
+        let max = Number(maxInput.value);
         const pumCell = row.querySelector(".pum");
         const gradeCell = row.querySelector(".grade");
         const statusCell = row.querySelector(".status");
-        row.querySelector(".remove").setAttribute("aria-label", `Remove ${subject} row`);
+        row.querySelector(".remove").setAttribute("aria-label", `Remove ${label} row`);
+
+        if (!subjectCode || !optionCode) {
+          row.classList.add("error");
+          pumCell.textContent = "Invalid";
+          gradeCell.textContent = "-";
+          statusCell.textContent = "Add code/option";
+          statusCell.className = "readonly status status-invalid";
+          errors.push(`${label}: enter both subject code and option.`);
+          return;
+        }
+
+        let thresholdRow;
+        try {
+          const thresholdRows = await getThresholdRows(subjectCode);
+          thresholdRow = selectLatestThresholdRow(thresholdRows, optionCode);
+          if (!thresholdRow) {
+            throw new Error(`No threshold row found for option ${optionCode}.`);
+          }
+          if (!maxInput.value) {
+            const tableMax = parseThresholdNumber(thresholdRow["maximum mark after weighting"]);
+            if (Number.isFinite(tableMax)) {
+              maxInput.value = String(tableMax);
+              max = tableMax;
+            }
+          }
+        } catch (error) {
+          row.classList.add("error");
+          pumCell.textContent = "Invalid";
+          gradeCell.textContent = "-";
+          statusCell.textContent = "Threshold missing";
+          statusCell.className = "readonly status status-invalid";
+          errors.push(`${label}: ${error.message}`);
+          return;
+        }
 
         if (!Number.isFinite(raw) || !Number.isFinite(max) || max <= 0 || raw < 0 || raw > max) {
           row.classList.add("error");
@@ -302,23 +437,24 @@
           gradeCell.textContent = "-";
           statusCell.textContent = "Fix input";
           statusCell.className = "readonly status status-invalid";
-          errors.push(`${subject}: enter a valid raw mark between 0 and max mark.`);
+          errors.push(`${label}: enter a valid raw mark between 0 and max mark.`);
           return;
         }
 
-        // Percentage Uniform Mark (PUM): (raw / max) * 100 rounded to 1 decimal place.
-        // Multiplying by 1000 then dividing by 10 keeps a numeric value while rounding to 0.1.
         const pum = Math.round((raw / max) * 1000) / 10;
-        const grade = gradeFromPum(pum);
-        const status = pum >= 40 ? "Pass" : "Review";
+        const grade = gradeFromThresholds(raw, thresholdRow);
+        const status = grade === "U" ? "Review" : "Pass";
+        const session = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
 
         pumCell.textContent = pum.toFixed(1);
         gradeCell.textContent = grade;
-        statusCell.textContent = status;
+        statusCell.textContent = `${status} (${session.trim()})`;
         statusCell.className = `readonly status ${status === "Pass" ? "status-pass" : "status-review"}`;
 
-        validRows.push({ subject, raw, pum });
-      });
+        validRows.push({ subject: label, raw, pum });
+      }));
+
+      if (runId !== recalculateRunId) return;
 
       if (errors.length) {
         errorBox.style.display = "block";
@@ -437,9 +573,9 @@
       recalculate();
     });
 
-    addRow("Mathematics", "156", "200");
-    addRow("Physics", "123", "160");
-    addRow("English Language", "110", "160");
+    addRow("9709", "AY", "188", "250");
+    addRow("9709", "CY", "170", "250");
+    addRow("9709", "S4", "90", "125");
     recalculate();
   </script>
 </body>
