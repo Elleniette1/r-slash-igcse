@@ -6,6 +6,8 @@ from scrapy import Selector
 import requests
 import pandas as pd
 from rich.console import Console
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from gmft.auto import AutoTableDetector, AutoTableFormatter, AutoFormatConfig  # type: ignore[attr-defined]
 from gmft_pymupdf import PyMuPDFDocument
@@ -13,6 +15,39 @@ from gmft_pymupdf import PyMuPDFDocument
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('[githubpipeline.py]')
 console = Console()
+
+
+def create_session():
+    session = requests.Session()
+    retry = Retry(
+        total=5,
+        connect=5,
+        read=5,
+        status=5,
+        backoff_factor=1,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=frozenset(['GET']),
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('https://', adapter)
+    session.mount('http://', adapter)
+    return session
+
+
+session = create_session()
+
+
+def fetch_text(url: str) -> str:
+    response = session.get(url, timeout=30)
+    response.raise_for_status()
+    return response.text
+
+
+def fetch_bytes(url: str) -> bytes:
+    response = session.get(url, timeout=60)
+    response.raise_for_status()
+    return response.content
 
 
 def ensure_output_dirs():
@@ -32,9 +67,9 @@ def schedule():
     """Extracts the schedule of grade threshold tables from the Cambridge International website and saves it as a CSV file."""
     ensure_output_dirs()
     logging.info("Starting schedule extraction...")
-    output = requests.get(
+    output = fetch_text(
         "https://www.cambridgeinternational.org/programmes-and-qualifications/cambridge-advanced/cambridge-international-as-and-a-levels/grade-threshold-tables/"
-    ).text
+    )
 
     links = [
         'https://www.cambridgeinternational.org' + link
@@ -48,7 +83,7 @@ def schedule():
     for row in df.itertuples():
         pdflinks = [
             'https://www.cambridgeinternational.org' + link
-            for link in Selector(text=requests.get(str(row.links)).text)
+            for link in Selector(text=fetch_text(str(row.links)))
             .css('div.feature > div > p > a::attr(href)')
             .getall()
         ]
@@ -70,12 +105,21 @@ def schedule():
 def downtag():
     ensure_output_dirs()
     schedule_df = pd.read_csv('./output/schedule/schedule.csv', index_col='id', dtype={'subject_code': str})
-    for row in schedule_df.reset_index().itertuples():
+    rows = list(schedule_df.reset_index().itertuples())
+    total = len(rows)
+    logger.info(f'Starting PDF download step for {total} files.')
+    downloaded = 0
+    skipped = 0
+    for index, row in enumerate(rows, start=1):
+        logger.info(f'[{index}/{total}] Processing {row.id}')
         if not os.path.exists(f'./output/pdf/{row.id}.pdf'):
             with open(f'./output/pdf/{row.id}.pdf', 'wb') as f:
-                f.write(requests.get(str(row.pdf_links)).content)
+                f.write(fetch_bytes(str(row.pdf_links)))
+            downloaded += 1
         else:
             logger.info(f"{row.id} already exists, skipping download.")
+            skipped += 1
+    logger.info(f'PDF download step complete: {downloaded} downloaded, {skipped} skipped.')
 
 
 @cli.command()
