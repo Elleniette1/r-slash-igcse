@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
@@ -174,14 +174,38 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          tables = list(Path('output/table').glob('*_all.csv'))
+          tables = list(Path('output/tables').glob('*_all.csv'))
           if not tables:
-              raise SystemExit('No compiled tables generated in output/table')
+              raise SystemExit('No compiled tables generated in output/tables')
           print(f'compiled table count: {len(tables)}')
           PY
       - name: Upload compiled tables artifact
         uses: actions/upload-artifact@v4
         with:
           name: compiled-tables
-          path: output/table
+          path: output/tables
           retention-days: 30
+
+  deploy-tables:
+    needs: compile-tables
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download compiled tables artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-tables
+          path: output/tables
+      - name: Commit and push updated tables
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add output/tables
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: update compiled grade threshold tables [skip ci]"
+            git push
+          fi
