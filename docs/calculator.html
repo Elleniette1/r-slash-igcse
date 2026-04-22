@@ -61,16 +61,46 @@
       text-align: left;
       vertical-align: middle;
     }
-    input {
+    input, select {
       width: 100%;
       box-sizing: border-box;
       border: 1px solid #ccd2df;
       border-radius: 6px;
       padding: .45rem;
+      background: #fff;
+      font-family: inherit;
+      font-size: inherit;
     }
-    .error input {
+    .error input, .error select {
       border-color: #d92d20;
       background: #fff4f3;
+    }
+    .formula-section {
+      margin-top: .75rem;
+      border-left: 3px solid #1f6feb;
+      padding-left: .75rem;
+    }
+    .formula-section h3 {
+      margin: 0 0 .3rem;
+      font-size: .95rem;
+      color: #1f6feb;
+    }
+    .formula {
+      background: #f0f4ff;
+      border-radius: 6px;
+      padding: .5rem .75rem;
+      font-family: monospace;
+      font-size: .9rem;
+      color: #1a1f36;
+      margin-top: .25rem;
+    }
+    .formula-table {
+      min-width: unset;
+      width: auto;
+      margin: .5rem 0 .75rem;
+    }
+    .formula-table th, .formula-table td {
+      padding: .35rem .75rem;
     }
     .readonly {
       font-weight: 700;
@@ -134,6 +164,24 @@
       <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
       <div class="toolbar">
         <button id="addRow" type="button">Add Subject Row</button>
+        <label style="display:flex;align-items:center;gap:.4rem;font-weight:600;">
+          Session:
+          <select id="sessionSelect" style="width:auto;font-weight:normal;">
+            <option value="">Latest (auto)</option>
+            <option value="2025 on">2025 ON</option>
+            <option value="2025 mj">2025 MJ</option>
+            <option value="2025 fm">2025 FM</option>
+            <option value="2024 on">2024 ON</option>
+            <option value="2024 mj">2024 MJ</option>
+            <option value="2024 fm">2024 FM</option>
+            <option value="2023 on">2023 ON</option>
+            <option value="2023 mj">2023 MJ</option>
+            <option value="2023 fm">2023 FM</option>
+            <option value="2022 on">2022 ON</option>
+            <option value="2022 mj">2022 MJ</option>
+            <option value="2022 fm">2022 FM</option>
+          </select>
+        </label>
       </div>
       <div class="table-wrap">
         <table>
@@ -173,6 +221,34 @@
         </div>
       </div>
     </div>
+
+    <div class="card">
+      <h2>How PUM is Calculated</h2>
+      <p>The <strong>Percentage Uniform Mark (PUM)</strong> maps your raw marks onto a 0–100 scale using CAIE grade boundaries as fixed anchor points. Your raw mark is interpolated linearly within the band for your grade.</p>
+      <table class="formula-table">
+        <thead>
+          <tr><th>Grade</th><th>PUM range</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>A*</strong></td><td>90 – 100</td><td>A-Level only</td></tr>
+          <tr><td><strong>A</strong></td><td>80 – 89 (AL) &nbsp;/&nbsp; 80 – 100 (AS)</td><td>AS has no A* band</td></tr>
+          <tr><td><strong>B</strong></td><td>70 – 79</td><td></td></tr>
+          <tr><td><strong>C</strong></td><td>60 – 69</td><td></td></tr>
+          <tr><td><strong>D</strong></td><td>50 – 59</td><td></td></tr>
+          <tr><td><strong>E</strong></td><td>40 – 49</td><td></td></tr>
+          <tr><td><strong>U</strong></td><td>0 – 39</td><td>Ungraded</td></tr>
+        </tbody>
+      </table>
+      <div class="formula-section">
+        <h3>A* grade (A-Level only, PUM ≥ 90)</h3>
+        <div class="formula">PUM = 90 + (Raw − A* threshold) × 10 / (Max mark − A* threshold)</div>
+      </div>
+      <div class="formula-section">
+        <h3>All other grades (PUM &lt; 90, or &lt; 80 for AS)</h3>
+        <p style="margin:.3rem 0 0">The <em>grade above threshold</em> is the next grade's boundary (e.g. for grade B it is the A threshold; for grade A on A-Level it is the A* threshold).</p>
+        <div class="formula">PUM = Grade lower PUM + (Raw − Grade threshold) × 10 / (Grade above threshold − Grade threshold)</div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -185,6 +261,17 @@
     const BAR_GAP = 10;
     const MAX_LABEL_LENGTH = 8;
     const DATA_POINT_RADIUS = 3.5;
+
+    const SUBJECT_CODES = [
+      "8021","8022","8027","8028","8041","8238","8281","8291","8386","8665",
+      "8673","8675","8679","8680","8681","8682","8683","8684","8685","8686",
+      "8687","8689","8695","9011","9084","9093","9231","9239","9274","9395",
+      "9396","9479","9481","9482","9483","9484","9487","9488","9489","9607",
+      "9609","9618","9626","9631","9676","9679","9680","9686","9687","9689",
+      "9693","9694","9695","9696","9699","9700","9701","9702","9705","9706",
+      "9708","9709","9715","9716","9717","9718","9719","9844","9868","9897",
+      "9898","9980","9990"
+    ];
 
     function parseCsv(text) {
       const rows = [];
@@ -270,10 +357,17 @@
       return thresholdsCache.get(key);
     }
 
-    function selectLatestThresholdRow(rows, optionCode) {
+    function selectThresholdRow(rows, optionCode, session) {
       const option = optionCode.trim().toUpperCase();
       const matching = rows.filter((row) => String(row.option || "").trim().toUpperCase() === option);
       if (!matching.length) return null;
+      if (session) {
+        const parts = session.trim().split(/\s+/);
+        const year = parts[0];
+        const month = (parts[1] || "").toLowerCase();
+        const exact = matching.find((r) => r.year === year && (r.month || "").toLowerCase() === month);
+        if (exact) return exact;
+      }
       matching.sort((a, b) => {
         const yearA = Number(a.year) || 0;
         const yearB = Number(b.year) || 0;
@@ -281,6 +375,36 @@
         return monthRank(b.month) - monthRank(a.month);
       });
       return matching[0];
+    }
+
+    async function populateOptionDropdown(row, subjectCode, selectedOption) {
+      const select = row.querySelector(".option-code");
+      select.innerHTML = "";
+      const blank = document.createElement("option");
+      blank.value = "";
+      blank.textContent = subjectCode ? "– select –" : "– select subject first –";
+      select.appendChild(blank);
+      if (!subjectCode) return;
+      try {
+        const rows = await getThresholdRows(subjectCode);
+        const optionSet = new Set();
+        rows.forEach((r) => {
+          const yr = Number(r.year);
+          const mo = (r.month || "").trim().toLowerCase();
+          if (yr >= 2000 && (mo === "mj" || mo === "on" || mo === "fm")) {
+            optionSet.add((r.option || "").trim().toUpperCase());
+          }
+        });
+        [...optionSet].sort().forEach((opt) => {
+          const o = document.createElement("option");
+          o.value = opt;
+          o.textContent = opt;
+          if (opt === selectedOption.toUpperCase()) o.selected = true;
+          select.appendChild(o);
+        });
+      } catch {
+        // Subject not found — leave dropdown with only the blank option.
+      }
     }
 
     function gradeFromThresholds(raw, thresholdRow) {
@@ -346,25 +470,35 @@
       return Number.isFinite(e) && e > 0 ? raw * 40 / e : 0;
     }
 
-    function addRow(subjectCode = "", optionCode = "", raw = "", max = "") {
+    async function addRow(subjectCode = "", optionCode = "", raw = "", max = "") {
       const row = document.createElement("tr");
+
       const subjectCell = document.createElement("td");
-      const subjectInput = document.createElement("input");
-      subjectInput.type = "text";
-      subjectInput.className = "subject-code";
-      subjectInput.placeholder = "e.g. 9709";
-      subjectInput.setAttribute("aria-label", "Subject code");
-      subjectInput.value = subjectCode;
-      subjectCell.appendChild(subjectInput);
+      const subjectSelect = document.createElement("select");
+      subjectSelect.className = "subject-code";
+      subjectSelect.setAttribute("aria-label", "Subject code");
+      const subjectBlank = document.createElement("option");
+      subjectBlank.value = "";
+      subjectBlank.textContent = "– select –";
+      subjectSelect.appendChild(subjectBlank);
+      SUBJECT_CODES.forEach((code) => {
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = code;
+        if (code === subjectCode.toUpperCase()) opt.selected = true;
+        subjectSelect.appendChild(opt);
+      });
+      subjectCell.appendChild(subjectSelect);
 
       const optionCell = document.createElement("td");
-      const optionInput = document.createElement("input");
-      optionInput.type = "text";
-      optionInput.className = "option-code";
-      optionInput.placeholder = "e.g. AY";
-      optionInput.setAttribute("aria-label", "Option code");
-      optionInput.value = optionCode;
-      optionCell.appendChild(optionInput);
+      const optionSelect = document.createElement("select");
+      optionSelect.className = "option-code";
+      optionSelect.setAttribute("aria-label", "Option code");
+      const optionBlank = document.createElement("option");
+      optionBlank.value = "";
+      optionBlank.textContent = subjectCode ? "– select –" : "– select subject first –";
+      optionSelect.appendChild(optionBlank);
+      optionCell.appendChild(optionSelect);
 
       const rawCell = document.createElement("td");
       const rawInput = document.createElement("input");
@@ -409,6 +543,10 @@
       row.append(subjectCell, optionCell, rawCell, maxCell, pumCell, gradeCell, statusCell, actionCell);
       marksBody.appendChild(row);
 
+      subjectSelect.addEventListener("change", () => {
+        populateOptionDropdown(row, subjectSelect.value, "").then(recalculate);
+      });
+      optionSelect.addEventListener("change", recalculate);
       row.querySelectorAll("input").forEach((input) => {
         input.addEventListener("input", recalculate);
       });
@@ -420,6 +558,11 @@
         }
         recalculate();
       });
+
+      if (subjectCode) {
+        return populateOptionDropdown(row, subjectCode.toUpperCase(), optionCode.toUpperCase());
+      }
+      return Promise.resolve();
     }
 
     let recalculateRunId = 0;
@@ -429,6 +572,7 @@
       const rows = Array.from(marksBody.querySelectorAll("tr"));
       const errors = [];
       const validRows = [];
+      const session = document.getElementById("sessionSelect").value;
 
       await Promise.all(rows.map(async (row, index) => {
         row.classList.remove("error");
@@ -456,9 +600,9 @@
         let thresholdRow;
         try {
           const thresholdRows = await getThresholdRows(subjectCode);
-          thresholdRow = selectLatestThresholdRow(thresholdRows, optionCode);
+          thresholdRow = selectThresholdRow(thresholdRows, optionCode, session);
           if (!thresholdRow) {
-            throw new Error(`No threshold row found for option ${optionCode}.`);
+            throw new Error(`No threshold row found for option ${optionCode}${session ? ` in session ${session.toUpperCase()}` : ""}.`);
           }
           if (!maxInput.value) {
             const tableMax = parseThresholdNumber(thresholdRow["maximum mark after weighting"]);
@@ -617,14 +761,16 @@
     }
 
     document.getElementById("addRow").addEventListener("click", () => {
-      addRow();
-      recalculate();
+      addRow().then(recalculate);
     });
 
-    addRow("9709", "AY", "188", "250");
-    addRow("9709", "CY", "170", "250");
-    addRow("9709", "S4", "90", "125");
-    recalculate();
+    document.getElementById("sessionSelect").addEventListener("change", recalculate);
+
+    Promise.all([
+      addRow("9709", "AY", "188", "250"),
+      addRow("9709", "CY", "170", "250"),
+      addRow("9709", "S4", "90", "125")
+    ]).then(recalculate);
   </script>
 </body>
 </html>
