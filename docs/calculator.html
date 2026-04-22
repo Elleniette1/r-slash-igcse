@@ -310,6 +310,7 @@
       const hasAstar = Number.isFinite(astar);
 
       // A* band (AL only): PUM = 90 + (raw - A*) * 10 / (max - A*)
+      // If max equals the A* threshold (malformed data), award PUM 100 rather than dividing by zero.
       if (hasAstar && raw >= astar) {
         return max > astar ? 90 + (raw - astar) * 10 / (max - astar) : 100;
       }
