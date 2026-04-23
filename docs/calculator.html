@@ -160,7 +160,7 @@
   <div class="container">
     <div class="card">
       <h1>A Level Marks Calculator</h1>
-      <p>Enter subject code, option, and your total combined raw mark. The grade is determined by direct comparison to CAIE published boundaries. The PUM (Percentage Uniform Mark) is calculated using CAIE interpolation: raw marks are mapped linearly within each grade band (A*=90–100, A=80–89, B=70–79, C=60–69, D=50–59, E=40–49, U=0–39).</p>
+      <p>Enter subject code, option, and your total combined raw mark. The grade is determined by direct comparison to CAIE published boundaries.</p>
       <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
       <div class="toolbar">
         <button id="addRow" type="button">Add Subject Row</button>
@@ -216,8 +216,8 @@
           <canvas id="rawChart" width="500" height="220" role="img" aria-label="Bar chart showing raw marks by subject"></canvas>
         </div>
         <div>
-          <p><strong>PUM by Subject</strong></p>
-          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing PUM across subjects"></canvas>
+          <p><strong>Avg Grade Boundary % by Subject</strong></p>
+          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing average grade boundary percentage across subjects"></canvas>
         </div>
       </div>
     </div>
@@ -470,6 +470,104 @@
       return Number.isFinite(e) && e > 0 ? raw * 40 / e : 0;
     }
 
+    function avgGradeThresholdPct(thresholdRows, optionCode, grade) {
+      const option = optionCode.trim().toUpperCase();
+      const matching = thresholdRows.filter((r) => String(r.option || "").trim().toUpperCase() === option);
+      const percentages = [];
+      for (const r of matching) {
+        const maxMark = parseThresholdNumber(r["maximum mark after weighting"]);
+        if (!Number.isFinite(maxMark) || maxMark <= 0) continue;
+        let threshold;
+        if (grade === "A*") threshold = parseThresholdNumber(r["a*"]);
+        else if (grade === "U") threshold = 0;
+        else threshold = parseThresholdNumber(r[grade.toLowerCase()]);
+        if (Number.isFinite(threshold)) {
+          percentages.push((threshold / maxMark) * 100);
+        }
+      }
+      if (!percentages.length) return null;
+      return percentages.reduce((sum, v) => sum + v, 0) / percentages.length;
+    }
+
+    // --- Max mark tooltip ---
+    const maxMarkTooltipEl = document.createElement("div");
+    maxMarkTooltipEl.id = "maxMarkTooltip";
+    Object.assign(maxMarkTooltipEl.style, {
+      display: "none",
+      position: "fixed",
+      zIndex: "1000",
+      background: "#fff",
+      border: "1px solid #ccd2df",
+      borderRadius: "8px",
+      padding: ".6rem .75rem",
+      boxShadow: "0 4px 16px rgba(15,23,42,.12)",
+      maxWidth: "700px",
+      overflowX: "auto",
+      fontFamily: "monospace",
+      fontSize: ".78rem",
+      whiteSpace: "pre",
+      lineHeight: "1.5"
+    });
+    document.body.appendChild(maxMarkTooltipEl);
+
+    function hideMaxMarkTooltip() {
+      maxMarkTooltipEl.style.display = "none";
+    }
+
+    async function showMaxMarkTooltip(inputEl, tableRow) {
+      const subjectCode = tableRow.querySelector(".subject-code").value.trim().toUpperCase();
+      const optionCode = tableRow.querySelector(".option-code").value.trim().toUpperCase();
+      if (!subjectCode || !optionCode) return;
+
+      let thresholdRows;
+      try {
+        thresholdRows = await getThresholdRows(subjectCode);
+      } catch {
+        return;
+      }
+
+      const option = optionCode.trim().toUpperCase();
+      let rows = thresholdRows.filter((r) => String(r.option || "").trim().toUpperCase() === option);
+      rows.sort((a, b) => {
+        const yA = Number(a.year) || 0;
+        const yB = Number(b.year) || 0;
+        if (yA !== yB) return yB - yA;
+        return monthRank(b.month) - monthRank(a.month);
+      });
+      if (!rows.length) return;
+
+      const session = document.getElementById("sessionSelect").value;
+      const matchingRow = selectThresholdRow(thresholdRows, optionCode, session);
+      let centerIdx = matchingRow
+        ? rows.findIndex((r) => r.year === matchingRow.year && r.month === matchingRow.month)
+        : 0;
+      if (centerIdx < 0) centerIdx = 0;
+
+      const start = Math.max(0, centerIdx - 3);
+      const end = Math.min(rows.length, centerIdx + 4);
+      const displayRows = rows.slice(start, end);
+
+      const cols   = ["year", "month", "a*", "a", "b", "c", "d", "e", "maximum mark after weighting"];
+      const labels = ["Year", "Month", "A*",  "A", "B", "C", "D", "E", "Max Mark"];
+      const widths = labels.map((lbl, i) => {
+        const maxData = Math.max(...displayRows.map((r) => String(r[cols[i]] ?? "").length));
+        return Math.max(lbl.length, maxData);
+      });
+
+      const headerRow = "| " + labels.map((lbl, i) => lbl.padEnd(widths[i])).join(" | ") + " |";
+      const sepRow    = "| " + widths.map((w) => "-".repeat(w)).join(" | ") + " |";
+      const dataRows  = displayRows.map((r, idx) => {
+        const marker = (start + idx) === centerIdx ? ">" : " ";
+        return marker + "| " + cols.map((col, i) => String(r[col] ?? "").padEnd(widths[i])).join(" | ") + " |";
+      });
+
+      maxMarkTooltipEl.textContent = [headerRow, sepRow, ...dataRows].join("\n");
+      maxMarkTooltipEl.style.display = "block";
+      const rect = inputEl.getBoundingClientRect();
+      maxMarkTooltipEl.style.top  = `${rect.bottom + 4}px`;
+      maxMarkTooltipEl.style.left = `${rect.left}px`;
+    }
+
     async function addRow(subjectCode = "", optionCode = "", raw = "", max = "") {
       const row = document.createElement("tr");
 
@@ -550,6 +648,9 @@
       row.querySelectorAll("input").forEach((input) => {
         input.addEventListener("input", recalculate);
       });
+
+      maxInput.addEventListener("focus", () => showMaxMarkTooltip(maxInput, row));
+      maxInput.addEventListener("blur", () => setTimeout(hideMaxMarkTooltip, 150));
 
       row.querySelector(".remove").addEventListener("click", () => {
         row.remove();
@@ -637,12 +738,14 @@
         const statusLabel = isGraded ? "Pass" : "U – Ungraded";
         const resultSession = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
 
+        const avgGradePercent = avgGradeThresholdPct(thresholdRows, optionCode, grade);
+
         pumCell.textContent = pum.toFixed(1);
         gradeCell.textContent = grade;
         statusCell.textContent = `${statusLabel} (${resultSession.trim()})`;
         statusCell.className = `readonly status ${isGraded ? "status-pass" : "status-ungraded"}`;
 
-        validRows.push({ subject: label, raw, pum, grade });
+        validRows.push({ subject: label, raw, pum, grade, avgGradePercent: avgGradePercent ?? pum });
       }));
 
       if (runId !== recalculateRunId) return;
@@ -680,7 +783,7 @@
           : `${ungradedCount} Ungraded`;
 
       drawBarChart("rawChart", validRows.map((r) => r.subject), validRows.map((r) => r.raw), "#1f6feb");
-      drawLineChart("pumChart", validRows.map((r) => r.subject), validRows.map((r) => r.pum), "#7a3cff");
+      drawLineChart("pumChart", validRows.map((r) => r.subject), validRows.map((r) => r.avgGradePercent), "#7a3cff");
     }
 
     function drawBarChart(canvasId, labels, values, color) {
