@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>A Level Marks Calculator</title>
+  <title>Calculator – r/IGCSE Grade Boundaries</title>
+  <link rel="stylesheet" href="site.css" />
   <style>
     :root {
       color-scheme: light;
@@ -157,6 +158,15 @@
   </style>
 </head>
 <body>
+  <header class="site-header">
+    <a class="site-brand" href="index.html">r/IGCSE Grade Boundaries</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="calculator.html" class="active">Calculator</a>
+      <a href="thresholds.html">Thresholds</a>
+      <a href="downloads.html">CSV Downloads</a>
+    </nav>
+  </header>
   <div class="container">
     <div class="card">
       <h1>A Level Marks Calculator</h1>
@@ -875,5 +885,6 @@
       addRow("9709", "S4", "90", "125")
     ]).then(recalculate);
   </script>
+  <script src="site.js"></script>
 </body>
 </html>

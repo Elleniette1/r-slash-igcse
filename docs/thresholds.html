@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historical Thresholds – r/IGCSE Grade Boundaries</title>
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    :root { color-scheme: light; font-family: Arial, sans-serif; }
+    body { margin: 0; background: #f4f6fb; color: #1a1f36; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    h1 { margin: 0 0 .4rem; }
+    .subtitle { color: #5c6370; margin: 0 0 .9rem; }
+    .toolbar {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: .75rem;
+    }
+    .toolbar label {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      white-space: nowrap;
+    }
+    select {
+      border: 1px solid #ccd2df;
+      border-radius: 6px;
+      padding: .45rem;
+      background: #fff;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: .55rem .8rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #1f6feb;
+      color: #fff;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    button:disabled { opacity: .45; cursor: default; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      background: #e8f0fe;
+      color: #1f6feb;
+      border-radius: 12px;
+      padding: .2rem .65rem;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 620px; }
+    th, td {
+      border-bottom: 1px solid #e6e9f0;
+      padding: .45rem .6rem;
+      text-align: right;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    th:first-child, td:first-child,
+    th:nth-child(2), td:nth-child(2),
+    th:nth-child(3), td:nth-child(3) { text-align: left; }
+    thead th {
+      background: #f8f9fd;
+      font-size: .82rem;
+      color: #5c6370;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      position: sticky;
+      top: 52px;
+    }
+    tbody tr:hover { background: #f4f6fb; }
+    td.dash { color: #b0b8d1; }
+    .empty-state { text-align: center; color: #5c6370; padding: 2.5rem 1rem; }
+    .error-msg { color: #b42318; padding: .4rem 0; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-brand" href="index.html">r/IGCSE Grade Boundaries</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="calculator.html">Calculator</a>
+      <a href="thresholds.html" class="active">Thresholds</a>
+      <a href="downloads.html">CSV Downloads</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h1>Historical Grade Thresholds</h1>
+      <p class="subtitle">Browse CAIE A-Level and AS-Level grade boundary data by subject and session.</p>
+      <div class="toolbar">
+        <label>
+          Subject:
+          <select id="subjectSelect">
+            <option value="">– select –</option>
+          </select>
+        </label>
+        <label>
+          Option:
+          <select id="optionSelect" disabled>
+            <option value="">All options</option>
+          </select>
+        </label>
+        <button id="downloadBtn" type="button" disabled>⬇ Download CSV</button>
+        <span id="rowCount" class="badge" style="display:none"></span>
+      </div>
+      <div id="errorMsg" class="error-msg" style="display:none"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Session</th>
+              <th>Option</th>
+              <th>A*</th>
+              <th>A</th>
+              <th>B</th>
+              <th>C</th>
+              <th>D</th>
+              <th>E</th>
+              <th>Max&nbsp;Mark</th>
+            </tr>
+          </thead>
+          <tbody id="threshBody">
+            <tr><td colspan="10" class="empty-state">Select a subject above to view threshold data.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="site.js"></script>
+  <script>
+    const TABLES_BASE_PATH = "../output/tables";
+
+    const SUBJECT_CODES = [
+      "8021","8022","8027","8028","8041","8238","8281","8291","8386","8665",
+      "8673","8675","8679","8680","8681","8682","8683","8684","8685","8686",
+      "8687","8689","8695","9011","9084","9093","9231","9239","9274","9395",
+      "9396","9479","9481","9482","9483","9484","9487","9488","9489","9607",
+      "9609","9618","9626","9631","9676","9679","9680","9686","9687","9689",
+      "9693","9694","9695","9696","9699","9700","9701","9702","9705","9706",
+      "9708","9709","9715","9716","9717","9718","9719","9844","9868","9897",
+      "9898","9980","9990"
+    ];
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [], field = "", inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i], next = text[i + 1];
+        if (char === '"' && inQuotes && next === '"') { field += '"'; i++; continue; }
+        if (char === '"') { inQuotes = !inQuotes; continue; }
+        if (char === ',' && !inQuotes) { row.push(field); field = ""; continue; }
+        if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (char === '\r' && next === '\n') i++;
+          row.push(field);
+          if (row.some(v => v.trim() !== '')) rows.push(row);
+          row = []; field = ""; continue;
+        }
+        field += char;
+      }
+      row.push(field);
+      if (row.some(v => v.trim() !== '')) rows.push(row);
+      return rows;
+    }
+
+    function normalizeCsvRows(csvRows) {
+      if (!csvRows.length) return [];
+      const headers = csvRows[0].map(h => String(h || '').trim().toLowerCase());
+      return csvRows.slice(1).map(values => {
+        const rec = {};
+        headers.forEach((h, i) => { rec[h] = String(values[i] ?? '').trim(); });
+        return rec;
+      });
+    }
+
+    function monthRank(month) {
+      const key = String(month || '').trim().toLowerCase();
+      if (key === 'fm') return 1;
+      if (key === 'mj') return 2;
+      if (key === 'on') return 3;
+      return 0;
+    }
+
+    function makeCell(val) {
+      const td = document.createElement('td');
+      const s = String(val ?? '').trim();
+      if (!s || s === '–' || s === '-') { td.textContent = '–'; td.className = 'dash'; }
+      else td.textContent = s;
+      return td;
+    }
+
+    // Populate subject dropdown
+    const subjectSelect = document.getElementById('subjectSelect');
+    SUBJECT_CODES.forEach(code => {
+      const opt = document.createElement('option');
+      opt.value = code;
+      opt.textContent = code;
+      subjectSelect.appendChild(opt);
+    });
+
+    const optionSelect = document.getElementById('optionSelect');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const rowCountEl = document.getElementById('rowCount');
+    const errorMsg = document.getElementById('errorMsg');
+    const threshBody = document.getElementById('threshBody');
+
+    let currentRows = [];
+    let currentSubject = '';
+
+    function renderTable(rows) {
+      threshBody.innerHTML = '';
+      if (!rows.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 10;
+        td.className = 'empty-state';
+        td.textContent = 'No data found for the selected filters.';
+        tr.appendChild(td);
+        threshBody.appendChild(tr);
+        rowCountEl.style.display = 'none';
+        return;
+      }
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.appendChild(makeCell(r.year));
+        const sessionTd = document.createElement('td');
+        sessionTd.textContent = String(r.month || '').trim().toUpperCase();
+        tr.appendChild(sessionTd);
+        const optTd = document.createElement('td');
+        optTd.textContent = String(r.option || '').trim().toUpperCase();
+        tr.appendChild(optTd);
+        tr.appendChild(makeCell(r['a*']));
+        tr.appendChild(makeCell(r.a));
+        tr.appendChild(makeCell(r.b));
+        tr.appendChild(makeCell(r.c));
+        tr.appendChild(makeCell(r.d));
+        tr.appendChild(makeCell(r.e));
+        tr.appendChild(makeCell(r['maximum mark after weighting']));
+        threshBody.appendChild(tr);
+      });
+      rowCountEl.textContent = `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
+      rowCountEl.style.display = '';
+    }
+
+    function applyFilter() {
+      const option = optionSelect.value;
+      const rows = option
+        ? currentRows.filter(r => String(r.option || '').trim().toUpperCase() === option)
+        : currentRows;
+      renderTable(rows);
+    }
+
+    async function loadSubject(code) {
+      errorMsg.style.display = 'none';
+      threshBody.innerHTML = '<tr><td colspan="10" class="empty-state">Loading…</td></tr>';
+      rowCountEl.style.display = 'none';
+      downloadBtn.disabled = true;
+      optionSelect.innerHTML = '<option value="">All options</option>';
+      optionSelect.disabled = true;
+      try {
+        const res = await fetch(`${TABLES_BASE_PATH}/${code}_all.csv`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`No table found for subject ${code}.`);
+        const text = await res.text();
+        let rows = normalizeCsvRows(parseCsv(text));
+        rows.sort((a, b) => {
+          const yA = Number(a.year) || 0, yB = Number(b.year) || 0;
+          if (yA !== yB) return yB - yA;
+          return monthRank(b.month) - monthRank(a.month);
+        });
+        currentRows = rows;
+        currentSubject = code;
+
+        const options = [...new Set(
+          rows.map(r => String(r.option || '').trim().toUpperCase()).filter(Boolean)
+        )].sort();
+        options.forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt;
+          o.textContent = opt;
+          optionSelect.appendChild(o);
+        });
+        optionSelect.disabled = options.length === 0;
+
+        downloadBtn.disabled = false;
+        applyFilter();
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.style.display = '';
+        threshBody.innerHTML = '<tr><td colspan="10" class="empty-state">Failed to load data.</td></tr>';
+      }
+    }
+
+    subjectSelect.addEventListener('change', () => {
+      if (subjectSelect.value) {
+        loadSubject(subjectSelect.value);
+      } else {
+        currentRows = [];
+        currentSubject = '';
+        threshBody.innerHTML = '<tr><td colspan="10" class="empty-state">Select a subject above to view threshold data.</td></tr>';
+        optionSelect.innerHTML = '<option value="">All options</option>';
+        optionSelect.disabled = true;
+        downloadBtn.disabled = true;
+        rowCountEl.style.display = 'none';
+      }
+    });
+
+    optionSelect.addEventListener('change', applyFilter);
+
+    downloadBtn.addEventListener('click', () => {
+      if (!currentSubject) return;
+      const a = document.createElement('a');
+      a.href = `${TABLES_BASE_PATH}/${currentSubject}_all.csv`;
+      a.download = `${currentSubject}_all.csv`;
+      a.click();
+    });
+  </script>
+</body>
+</html>

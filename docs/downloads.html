@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSV Downloads – r/IGCSE Grade Boundaries</title>
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    :root { color-scheme: light; font-family: Arial, sans-serif; }
+    body { margin: 0; background: #f4f6fb; color: #1a1f36; }
+    .container { max-width: 900px; margin: 0 auto; padding: 1rem; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    h1 { margin: 0 0 .4rem; }
+    .subtitle { color: #5c6370; margin: 0 0 .9rem; }
+    .search-wrap { margin-bottom: .75rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .search-wrap input {
+      width: 100%;
+      max-width: 320px;
+      box-sizing: border-box;
+      border: 1px solid #ccd2df;
+      border-radius: 6px;
+      padding: .45rem .7rem;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      background: #e8f0fe;
+      color: #1f6feb;
+      border-radius: 12px;
+      padding: .2rem .65rem;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: .5rem;
+    }
+    .file-item {
+      background: #f8f9fd;
+      border: 1px solid #e6e9f0;
+      border-radius: 8px;
+      padding: .6rem .5rem;
+      text-align: center;
+      text-decoration: none;
+      color: #1a1f36;
+      font-weight: 600;
+      font-size: .9rem;
+      transition: background .15s, border-color .15s;
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+      align-items: center;
+    }
+    .file-item:hover { background: #e8f0fe; border-color: #1f6feb; color: #1f6feb; }
+    .file-item .icon { font-size: 1.3rem; }
+    .file-item .ext { font-size: .7rem; color: #8b96b7; font-weight: 400; }
+    .file-item:hover .ext { color: #5a9ef0; }
+    .no-results { color: #5c6370; padding: 1.5rem 0; display: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-brand" href="index.html">r/IGCSE Grade Boundaries</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="calculator.html">Calculator</a>
+      <a href="thresholds.html">Thresholds</a>
+      <a href="downloads.html" class="active">CSV Downloads</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h1>CSV Downloads</h1>
+      <p class="subtitle">Download compiled grade boundary CSV files for any CAIE A-Level or AS-Level subject. Files are updated monthly.</p>
+
+      <div class="search-wrap">
+        <input type="search" id="filterInput" placeholder="Filter by subject code…" aria-label="Filter subject codes" />
+        <span id="countBadge" class="badge"></span>
+      </div>
+      <div class="file-grid" id="fileGrid"></div>
+      <p class="no-results" id="noResults">No subjects match your filter.</p>
+    </div>
+  </div>
+
+  <script src="site.js"></script>
+  <script>
+    const TABLES_BASE_PATH = "../output/tables";
+
+    const SUBJECT_CODES = [
+      "8021","8022","8027","8028","8041","8238","8281","8291","8386","8665",
+      "8673","8675","8679","8680","8681","8682","8683","8684","8685","8686",
+      "8687","8689","8695","9011","9084","9093","9231","9239","9274","9395",
+      "9396","9479","9481","9482","9483","9484","9487","9488","9489","9607",
+      "9609","9618","9626","9631","9676","9679","9680","9686","9687","9689",
+      "9693","9694","9695","9696","9699","9700","9701","9702","9705","9706",
+      "9708","9709","9715","9716","9717","9718","9719","9844","9868","9897",
+      "9898","9980","9990"
+    ];
+
+    const fileGrid = document.getElementById('fileGrid');
+    const noResults = document.getElementById('noResults');
+    const countBadge = document.getElementById('countBadge');
+    const filterInput = document.getElementById('filterInput');
+
+    function buildGrid(codes) {
+      fileGrid.innerHTML = '';
+      if (!codes.length) {
+        noResults.style.display = '';
+        countBadge.textContent = '0 files';
+        return;
+      }
+      noResults.style.display = 'none';
+      codes.forEach(code => {
+        const a = document.createElement('a');
+        a.className = 'file-item';
+        a.href = `${TABLES_BASE_PATH}/${code}_all.csv`;
+        a.download = `${code}_all.csv`;
+        a.title = `Download ${code}_all.csv`;
+        a.innerHTML = `<span class="icon">📄</span><span>${code}</span><span class="ext">CSV</span>`;
+        fileGrid.appendChild(a);
+      });
+      countBadge.textContent = `${codes.length} file${codes.length !== 1 ? 's' : ''}`;
+    }
+
+    filterInput.addEventListener('input', () => {
+      const q = filterInput.value.trim().toLowerCase();
+      const filtered = q ? SUBJECT_CODES.filter(c => c.includes(q)) : SUBJECT_CODES;
+      buildGrid(filtered);
+    });
+
+    buildGrid(SUBJECT_CODES);
+  </script>
+</body>
+</html>
