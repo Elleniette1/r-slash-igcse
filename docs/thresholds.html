@@ -326,7 +326,7 @@
     optionSelect.addEventListener('change', applyFilter);
 
     downloadBtn.addEventListener('click', () => {
-      if (!currentSubject) return;
+      if (!currentSubject || !SUBJECT_CODES.includes(currentSubject)) return;
       const a = document.createElement('a');
       a.href = `${TABLES_BASE_PATH}/${currentSubject}_all.csv`;
       a.download = `${currentSubject}_all.csv`;

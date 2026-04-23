@@ -134,7 +134,7 @@
 
     filterInput.addEventListener('input', () => {
       const q = filterInput.value.trim().toLowerCase();
-      const filtered = q ? SUBJECT_CODES.filter(c => c.includes(q)) : SUBJECT_CODES;
+      const filtered = q ? SUBJECT_CODES.filter(c => c.toLowerCase().includes(q)) : SUBJECT_CODES;
       buildGrid(filtered);
     });
 
