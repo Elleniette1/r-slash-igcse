@@ -480,28 +480,35 @@
 
       const table = document.createElement('table');
       table.className = 'stats-table';
-      table.innerHTML = `
-        <thead>
-          <tr>
-            <th>Grade</th>
-            <th>Mean %</th>
-            <th>Min %</th>
-            <th>Max %</th>
-            <th>Latest (${latestLabel})</th>
-            <th>Sessions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${stats.map(s => `<tr>
-            <td><span class="grade-chip" style="color:${s.color}">${s.label}</span></td>
-            <td>${fmt(s.mean)}</td>
-            <td>${fmt(s.min)}</td>
-            <td>${fmt(s.max)}</td>
-            <td>${fmt(s.latest)}</td>
-            <td>${s.count}</td>
-          </tr>`).join('')}
-        </tbody>
-      `;
+
+      // Build header row using DOM to safely insert latestLabel from CSV data
+      const thead = table.createTHead();
+      const hrow = thead.insertRow();
+      ['Grade', 'Mean %', 'Min %', 'Max %', '', 'Sessions'].forEach((text, i) => {
+        const th = document.createElement('th');
+        if (i === 4) {
+          th.textContent = 'Latest (' + latestLabel + ')';
+        } else {
+          th.textContent = text;
+        }
+        hrow.appendChild(th);
+      });
+
+      // Build data rows — all values are from hardcoded arrays or numeric formatting, safe for innerHTML
+      const tbody = table.createTBody();
+      stats.forEach(s => {
+        const tr = tbody.insertRow();
+        const chipTd = tr.insertCell();
+        const chip = document.createElement('span');
+        chip.className = 'grade-chip';
+        chip.style.color = s.color;
+        chip.textContent = s.label;
+        chipTd.appendChild(chip);
+        [fmt(s.mean), fmt(s.min), fmt(s.max), fmt(s.latest), String(s.count)].forEach(val => {
+          const td = tr.insertCell();
+          td.textContent = val;
+        });
+      });
       const wrap = document.getElementById('statsWrap');
       wrap.innerHTML = '';
       wrap.appendChild(table);

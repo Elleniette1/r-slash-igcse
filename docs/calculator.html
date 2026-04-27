@@ -765,8 +765,9 @@
         }
 
         let thresholdRow;
+        let thresholdRows;
         try {
-          const thresholdRows = await getThresholdRows(subjectCode);
+          thresholdRows = await getThresholdRows(subjectCode);
           thresholdRow = selectThresholdRow(thresholdRows, optionCode, session);
           if (!thresholdRow) {
             throw new Error(`No threshold row found for option ${optionCode}${session ? ` in session ${session.toUpperCase()}` : ""}.`);
