@@ -481,10 +481,10 @@
       const table = document.createElement('table');
       table.className = 'stats-table';
 
-      // Build header row using DOM to safely insert latestLabel from CSV data
+      // Build header row using DOM to safely insert latestLabel (from CSV data) as textContent
       const thead = table.createTHead();
       const hrow = thead.insertRow();
-      ['Grade', 'Mean %', 'Min %', 'Max %', '', 'Sessions'].forEach((text, i) => {
+      ['Grade', 'Mean %', 'Min %', 'Max %', 'Latest', 'Sessions'].forEach((text, i) => {
         const th = document.createElement('th');
         if (i === 4) {
           th.textContent = 'Latest (' + latestLabel + ')';
