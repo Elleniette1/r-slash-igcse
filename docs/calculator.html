@@ -94,6 +94,9 @@
       top: var(--header-h);
       z-index: 1;
     }
+    tbody tr:first-child td {
+      padding-top: 1rem;
+    }
     input, select {
       width: 100%;
       box-sizing: border-box;
@@ -187,7 +190,7 @@
     /* Side-by-side layout: main calculator + PUM explanation */
     .calc-layout {
       display: grid;
-      grid-template-columns: 1fr minmax(240px, 320px);
+      grid-template-columns: 1fr minmax(240px, 720px);
       gap: 1.25rem;
       align-items: start;
     }
