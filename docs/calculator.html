@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculator – r/IGCSE Grade Boundaries</title>
+  <title>Calculator – It's Called Calc</title>
   <link rel="stylesheet" href="site.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -92,6 +92,7 @@
       background: var(--c-bg);
       position: sticky;
       top: var(--header-h);
+      z-index: 1;
     }
     input, select {
       width: 100%;
@@ -183,24 +184,15 @@
       color: var(--c-ink);
       margin-top: .15rem;
     }
-    .charts {
+    /* Side-by-side layout: main calculator + PUM explanation */
+    .calc-layout {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: 1fr minmax(240px, 320px);
       gap: 1.25rem;
+      align-items: start;
     }
-    .chart-label {
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--c-ink-2);
-      margin: 0 0 .5rem;
-    }
-    canvas {
-      width: 100%;
-      height: 220px;
-      border: 1px solid var(--c-border);
-      background: var(--c-surface);
+    @media (max-width: 860px) {
+      .calc-layout { grid-template-columns: 1fr; }
     }
     /* Session select inline */
     .toolbar label {
@@ -216,7 +208,7 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="site-brand" href="index.html">r/IGCSE Grade Boundaries</a>
+    <a class="site-brand" href="index.html">It's Called Calc</a>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
     <nav class="site-nav" id="siteNav">
       <a href="calculator.html" class="active">Calculator</a>
@@ -225,94 +217,82 @@
     </nav>
   </header>
   <div class="container">
-    <div class="card">
-      <h1>Grade Calculator</h1>
-      <p class="card-subtitle">Enter subject code, option, and your total combined raw mark. Grade is determined by direct comparison to CAIE published boundaries.</p>
-      <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
-      <div class="toolbar">
-        <button id="addRow" type="button">+ Add Subject</button>
-        <label>
-          Session:
-          <select id="sessionSelect">
-            <option value="">Latest (auto)</option>
-            <option value="2025 on">2025 ON</option>
-            <option value="2025 mj">2025 MJ</option>
-            <option value="2025 fm">2025 FM</option>
-            <option value="2024 on">2024 ON</option>
-            <option value="2024 mj">2024 MJ</option>
-            <option value="2024 fm">2024 FM</option>
-            <option value="2023 on">2023 ON</option>
-            <option value="2023 mj">2023 MJ</option>
-            <option value="2023 fm">2023 FM</option>
-            <option value="2022 on">2022 ON</option>
-            <option value="2022 mj">2022 MJ</option>
-            <option value="2022 fm">2022 FM</option>
-          </select>
-        </label>
+    <div class="calc-layout">
+      <div class="card">
+        <h1>Grade Calculator</h1>
+        <p class="card-subtitle">Enter subject code, option, and your total combined raw mark. Grade is determined by direct comparison to CAIE published boundaries.</p>
+        <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
+        <div class="toolbar">
+          <button id="addRow" type="button">+ Add Subject</button>
+          <label>
+            Session:
+            <select id="sessionSelect">
+              <option value="">Latest (auto)</option>
+              <option value="2025 on">2025 ON</option>
+              <option value="2025 mj">2025 MJ</option>
+              <option value="2025 fm">2025 FM</option>
+              <option value="2024 on">2024 ON</option>
+              <option value="2024 mj">2024 MJ</option>
+              <option value="2024 fm">2024 FM</option>
+              <option value="2023 on">2023 ON</option>
+              <option value="2023 mj">2023 MJ</option>
+              <option value="2023 fm">2023 FM</option>
+              <option value="2022 on">2022 ON</option>
+              <option value="2022 mj">2022 MJ</option>
+              <option value="2022 fm">2022 FM</option>
+            </select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Subject Code</th>
+                <th>Option</th>
+                <th>Raw Mark</th>
+                <th>Max Mark</th>
+                <th>PUM</th>
+                <th>Grade</th>
+                <th>Result (Session)</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="marksBody"></tbody>
+          </table>
+        </div>
+        <div class="metrics">
+          <div class="metric">Valid Subjects<strong id="subjectCount">0</strong></div>
+          <div class="metric">Passed (A*–E)<strong id="gradedCount">0</strong></div>
+          <div class="metric">Average PUM<strong id="avgPum">0.0</strong></div>
+          <div class="metric">Overall Result<strong id="overallStatus">N/A</strong></div>
+        </div>
       </div>
-      <div class="table-wrap">
-        <table>
+
+      <div class="card">
+        <h2>How PUM is Calculated</h2>
+        <table class="formula-table">
           <thead>
-            <tr>
-              <th>Subject Code</th>
-              <th>Option</th>
-              <th>Raw Mark</th>
-              <th>Max Mark</th>
-              <th>PUM</th>
-              <th>Grade</th>
-              <th>Result (Session)</th>
-              <th>Action</th>
-            </tr>
+            <tr><th>Grade</th><th>PUM range</th><th>Notes</th></tr>
           </thead>
-          <tbody id="marksBody"></tbody>
+          <tbody>
+            <tr><td><strong>A*</strong></td><td>90 – 100</td><td>A-Level only</td></tr>
+            <tr><td><strong>A</strong></td><td>80 – 89 (AL) &nbsp;/&nbsp; 80 – 100 (AS)</td><td>AS has no A* band</td></tr>
+            <tr><td><strong>B</strong></td><td>70 – 79</td><td></td></tr>
+            <tr><td><strong>C</strong></td><td>60 – 69</td><td></td></tr>
+            <tr><td><strong>D</strong></td><td>50 – 59</td><td></td></tr>
+            <tr><td><strong>E</strong></td><td>40 – 49</td><td></td></tr>
+            <tr><td><strong>U</strong></td><td>0 – 39</td><td>Ungraded</td></tr>
+          </tbody>
         </table>
-      </div>
-      <div class="metrics">
-        <div class="metric">Valid Subjects<strong id="subjectCount">0</strong></div>
-        <div class="metric">Passed (A*–E)<strong id="gradedCount">0</strong></div>
-        <div class="metric">Average PUM<strong id="avgPum">0.0</strong></div>
-        <div class="metric">Overall Result<strong id="overallStatus">N/A</strong></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Marks Charts</h2>
-      <div class="charts">
-        <div>
-          <p class="chart-label">Raw Marks by Subject</p>
-          <canvas id="rawChart" width="500" height="220" role="img" aria-label="Bar chart showing raw marks by subject"></canvas>
+        <div class="formula-section">
+          <h3>A* grade (A-Level only, PUM ≥ 90)</h3>
+          <div class="formula">PUM = 90 + (Raw − A* threshold) × 10 / (Max mark − A* threshold)</div>
         </div>
-        <div>
-          <p class="chart-label">Avg Historical Grade Boundary %</p>
-          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing average historical grade boundary percentage by subject"></canvas>
+        <div class="formula-section">
+          <h3>All other grades (PUM &lt; 90, or &lt; 80 for AS)</h3>
+          <p style="margin:.3rem 0 0">The <em>grade above threshold</em> is the next grade's boundary (e.g. for grade B it is the A threshold; for grade A on A-Level it is the A* threshold).</p>
+          <div class="formula">PUM = Grade lower PUM + (Raw − Grade threshold) × 10 / (Grade above threshold − Grade threshold)</div>
         </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>How PUM is Calculated</h2>
-      <table class="formula-table">
-        <thead>
-          <tr><th>Grade</th><th>PUM range</th><th>Notes</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><strong>A*</strong></td><td>90 – 100</td><td>A-Level only</td></tr>
-          <tr><td><strong>A</strong></td><td>80 – 89 (AL) &nbsp;/&nbsp; 80 – 100 (AS)</td><td>AS has no A* band</td></tr>
-          <tr><td><strong>B</strong></td><td>70 – 79</td><td></td></tr>
-          <tr><td><strong>C</strong></td><td>60 – 69</td><td></td></tr>
-          <tr><td><strong>D</strong></td><td>50 – 59</td><td></td></tr>
-          <tr><td><strong>E</strong></td><td>40 – 49</td><td></td></tr>
-          <tr><td><strong>U</strong></td><td>0 – 39</td><td>Ungraded</td></tr>
-        </tbody>
-      </table>
-      <div class="formula-section">
-        <h3>A* grade (A-Level only, PUM ≥ 90)</h3>
-        <div class="formula">PUM = 90 + (Raw − A* threshold) × 10 / (Max mark − A* threshold)</div>
-      </div>
-      <div class="formula-section">
-        <h3>All other grades (PUM &lt; 90, or &lt; 80 for AS)</h3>
-        <p style="margin:.3rem 0 0">The <em>grade above threshold</em> is the next grade's boundary (e.g. for grade B it is the A threshold; for grade A on A-Level it is the A* threshold).</p>
-        <div class="formula">PUM = Grade lower PUM + (Raw − Grade threshold) × 10 / (Grade above threshold − Grade threshold)</div>
       </div>
     </div>
   </div>
@@ -322,11 +302,6 @@
     const thresholdsCache = new Map();
     const marksBody = document.getElementById("marksBody");
     const errorBox = document.getElementById("errors");
-    const MIN_CHART_SCALE = 1;
-    const MIN_BAR_WIDTH = 18;
-    const BAR_GAP = 10;
-    const MAX_LABEL_LENGTH = 8;
-    const DATA_POINT_RADIUS = 3.5;
 
     const SUBJECT_CODES = [
       "8021","8022","8027","8028","8041","8238","8281","8291","8386","8665",
@@ -534,25 +509,6 @@
 
       // U band: linear from 0 to 40 below E threshold
       return Number.isFinite(e) && e > 0 ? raw * 40 / e : 0;
-    }
-
-    function avgGradeThresholdPct(thresholdRows, optionCode, grade) {
-      const option = optionCode.trim().toUpperCase();
-      const matching = thresholdRows.filter((r) => String(r.option || "").trim().toUpperCase() === option);
-      const percentages = [];
-      for (const r of matching) {
-        const maxMark = parseThresholdNumber(r["maximum mark after weighting"]);
-        if (!Number.isFinite(maxMark) || maxMark <= 0) continue;
-        let threshold;
-        if (grade === "A*") threshold = parseThresholdNumber(r["a*"]);
-        else if (grade === "U") threshold = 0;
-        else threshold = parseThresholdNumber(r[grade.toLowerCase()]);
-        if (Number.isFinite(threshold)) {
-          percentages.push((threshold / maxMark) * 100);
-        }
-      }
-      if (!percentages.length) return null;
-      return percentages.reduce((sum, v) => sum + v, 0) / percentages.length;
     }
 
     // --- Max mark tooltip ---
@@ -805,14 +761,12 @@
         const statusLabel = isGraded ? "Pass" : "U – Ungraded";
         const resultSession = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
 
-        const avgGradePercent = avgGradeThresholdPct(thresholdRows, optionCode, grade);
-
         pumCell.textContent = pum.toFixed(1);
         gradeCell.textContent = grade;
         statusCell.textContent = `${statusLabel} (${resultSession.trim()})`;
         statusCell.className = `readonly status ${isGraded ? "status-pass" : "status-ungraded"}`;
 
-        validRows.push({ subject: label, raw, pum, grade, avgGradePercent });
+        validRows.push({ subject: label, raw, pum, grade });
       }));
 
       if (runId !== recalculateRunId) return;
@@ -848,89 +802,6 @@
         : ungradedCount === 0
           ? "All Passed"
           : `${ungradedCount} Ungraded`;
-
-      drawBarChart("rawChart", validRows.map((r) => r.subject), validRows.map((r) => r.raw), "#111111");
-      const boundaryRows = validRows.filter((r) => r.avgGradePercent !== null);
-      drawLineChart("pumChart", boundaryRows.map((r) => r.subject), boundaryRows.map((r) => r.avgGradePercent), "#1e3a5f");
-    }
-
-    function drawBarChart(canvasId, labels, values, color) {
-      const canvas = document.getElementById(canvasId);
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-
-      if (!values.length) {
-        canvas.setAttribute("aria-label", "Raw marks chart: no valid rows to plot");
-        ctx.fillStyle = "#999999";
-        ctx.font = "12px Inter, system-ui, sans-serif";
-        ctx.fillText("No valid rows to plot.", 12, 30);
-        return;
-      }
-      canvas.setAttribute("aria-label", "Raw marks chart by subject");
-
-      const maxValue = Math.max(...values, MIN_CHART_SCALE);
-      const padding = 30;
-      const barAreaWidth = w - padding * 2;
-      const barWidth = Math.max(MIN_BAR_WIDTH, barAreaWidth / values.length - BAR_GAP);
-
-      values.forEach((v, i) => {
-        const x = padding + i * (barAreaWidth / values.length) + 4;
-        const barHeight = ((h - padding * 2) * v) / maxValue;
-        const y = h - padding - barHeight;
-
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, barWidth, barHeight);
-        ctx.fillStyle = "#111111";
-        ctx.font = "11px Inter, system-ui, sans-serif";
-        ctx.fillText(String(v.toFixed(1)), x, y - 4);
-        ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x, h - 10);
-      });
-    }
-
-    function drawLineChart(canvasId, labels, values, color) {
-      const canvas = document.getElementById(canvasId);
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width;
-      const h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-
-      if (!values.length) {
-        canvas.setAttribute("aria-label", "Avg grade boundary chart: no valid rows to plot");
-        ctx.fillStyle = "#999999";
-        ctx.font = "12px Inter, system-ui, sans-serif";
-        ctx.fillText("No valid rows to plot.", 12, 30);
-        return;
-      }
-      canvas.setAttribute("aria-label", "Avg grade boundary chart across subjects");
-
-      const padding = 30;
-      const xStep = values.length > 1 ? (w - padding * 2) / (values.length - 1) : 0;
-
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      values.forEach((v, i) => {
-        const x = values.length === 1 ? w / 2 : padding + i * xStep;
-        const y = h - padding - ((h - padding * 2) * v) / 100;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      values.forEach((v, i) => {
-        const x = values.length === 1 ? w / 2 : padding + i * xStep;
-        const y = h - padding - ((h - padding * 2) * v) / 100;
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(x, y, DATA_POINT_RADIUS, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#111111";
-        ctx.font = "11px Inter, system-ui, sans-serif";
-        ctx.fillText(v.toFixed(1), x - 10, y - 8);
-        ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x - 12, h - 10);
-      });
     }
 
     document.getElementById("addRow").addEventListener("click", () => {
@@ -946,5 +817,10 @@
     ]).then(recalculate);
   </script>
   <script src="site.js"></script>
+
+  <footer class="site-footer">
+    Data sourced from CAIE published grade threshold documents. Updated monthly via automated pipeline.<br>
+    <a href="https://github.com/Elleniette1/r-slash-igcse" target="_blank" rel="noopener">github.com/Elleniette1/r-slash-igcse</a>
+  </footer>
 </body>
 </html>
