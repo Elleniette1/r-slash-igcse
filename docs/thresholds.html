@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Historical Thresholds – r/IGCSE Grade Boundaries</title>
+  <title>Historical Thresholds – It's Called Calc</title>
   <link rel="stylesheet" href="site.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -107,6 +107,7 @@
       letter-spacing: .1em;
       position: sticky;
       top: var(--header-h);
+      z-index: 1;
     }
     tbody tr:hover { background: var(--c-bg); }
     td.dash { color: var(--c-ink-3); }
@@ -161,7 +162,7 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="site-brand" href="index.html">r/IGCSE Grade Boundaries</a>
+    <a class="site-brand" href="index.html">It's Called Calc</a>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
     <nav class="site-nav" id="siteNav">
       <a href="calculator.html">Calculator</a>
@@ -435,6 +436,10 @@
       'e':  '#ef4444'
     };
 
+    // Chart shows only the four main passing grades
+    const CHART_GRADE_KEYS   = ['a*', 'a', 'b', 'c'];
+    const CHART_GRADE_LABELS = ['A*', 'A', 'B', 'C'];
+
     function parsePct(boundary, maxMark) {
       const b = parseFloat(boundary);
       const m = parseFloat(maxMark);
@@ -549,7 +554,7 @@
 
       // Compute per-grade % at each session (average across rows in that session)
       const gradeData = {};
-      GRADE_KEYS.forEach(g => {
+      CHART_GRADE_KEYS.forEach(g => {
         gradeData[g] = sessions.map(s => {
           const vals = s.rows.map(r => parsePct(r[g], r['maximum mark after weighting'])).filter(v => v !== null);
           return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
@@ -558,7 +563,7 @@
 
       // Y axis range
       let yMin = Infinity, yMax = -Infinity;
-      GRADE_KEYS.forEach(g => gradeData[g].forEach(v => {
+      CHART_GRADE_KEYS.forEach(g => gradeData[g].forEach(v => {
         if (v !== null) { yMin = Math.min(yMin, v); yMax = Math.max(yMax, v); }
       }));
       if (!isFinite(yMin)) { yMin = 0; yMax = 100; }
@@ -602,7 +607,7 @@
       });
 
       // Grade lines
-      GRADE_KEYS.forEach(g => {
+      CHART_GRADE_KEYS.forEach(g => {
         const data = gradeData[g];
         const color = GRADE_COLORS[g];
         ctx.strokeStyle = color;
@@ -630,8 +635,8 @@
 
       // Legend
       const legendEl = document.getElementById('chartLegend');
-      legendEl.innerHTML = GRADE_KEYS.map((g, i) =>
-        `<span class="legend-item"><span class="legend-dot" style="background:${GRADE_COLORS[g]}"></span>${GRADE_LABELS[i]}</span>`
+      legendEl.innerHTML = CHART_GRADE_KEYS.map((g, i) =>
+        `<span class="legend-item"><span class="legend-dot" style="background:${GRADE_COLORS[g]}"></span>${CHART_GRADE_LABELS[i]}</span>`
       ).join('');
     }
 
@@ -648,5 +653,10 @@
       }, 150);
     });
   </script>
+
+  <footer class="site-footer">
+    Data sourced from CAIE published grade threshold documents. Updated monthly via automated pipeline.<br>
+    <a href="https://github.com/Elleniette1/r-slash-igcse" target="_blank" rel="noopener">github.com/Elleniette1/r-slash-igcse</a>
+  </footer>
 </body>
 </html>
