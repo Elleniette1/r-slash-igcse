@@ -56,6 +56,7 @@
       font-size: .875rem;
       color: var(--c-ink);
       border-radius: 0;
+      appearance: none;
       -webkit-appearance: none;
     }
     select:focus { outline: 2px solid var(--c-ink); outline-offset: -1px; }
@@ -110,7 +111,7 @@
       z-index: 1;
     }
     tbody tr:first-child td {
-      padding-top: 1.5rem;
+      padding-top: 4rem;
     }
     tbody tr:hover { background: var(--c-bg); }
     td.dash { color: var(--c-ink-3); }
@@ -219,19 +220,20 @@
       </div>
     </div>
 
+    <div class="card">
+      <h2>Grade Boundary Trends</h2>
+      <p class="subtitle">A*, A, B, and C boundaries as % of maximum mark, averaged by year for the selected subject and option filter. If a max mark is missing, the chart uses the highest available boundary as a fallback.</p>
+      <div class="chart-wrap">
+        <canvas id="trendChart" role="img" aria-label="Line chart of grade boundary trends over time"></canvas>
+      </div>
+      <div class="chart-legend" id="chartLegend"></div>
+    </div>
+
     <div id="vizSection">
       <div class="card">
         <h2>Summary Statistics</h2>
         <p class="subtitle">Grade boundary as a percentage of maximum mark across all loaded sessions for the selected filter.</p>
         <div class="table-wrap" id="statsWrap"></div>
-      </div>
-      <div class="card">
-        <h2>Grade Boundary Trends</h2>
-        <p class="subtitle">Boundary as % of maximum mark over time — oldest sessions on left, newest on right.</p>
-        <div class="chart-wrap">
-          <canvas id="trendChart" role="img" aria-label="Line chart of grade boundary trends over time"></canvas>
-        </div>
-        <div class="chart-legend" id="chartLegend"></div>
       </div>
     </div>
   </div>
@@ -280,6 +282,14 @@
         headers.forEach((h, i) => { rec[h] = String(values[i] ?? '').trim(); });
         return rec;
       });
+    }
+
+    function parseThresholdNumber(value) {
+      if (value === null || value === undefined) return NaN;
+      const cleaned = String(value).trim().replace(/,/g, '');
+      if (!cleaned || cleaned === '–' || cleaned === '-') return NaN;
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : NaN;
     }
 
     function monthRank(month) {
@@ -439,9 +449,17 @@
       'e':  '#ef4444'
     };
 
-    // Chart shows only the four main passing grades (A*, A, B, C)
     const CHART_GRADE_KEYS   = ['a*', 'a', 'b', 'c'];
     const CHART_GRADE_LABELS = ['A*', 'A', 'B', 'C'];
+
+    function getReferenceMaxMark(row) {
+      const explicitMax = parseThresholdNumber(row['maximum mark after weighting']);
+      if (Number.isFinite(explicitMax) && explicitMax > 0) return explicitMax;
+      const fallbackCandidates = ['a*', 'a', 'b', 'c', 'd', 'e']
+        .map(key => parseThresholdNumber(row[key]))
+        .filter(value => Number.isFinite(value) && value > 0);
+      return fallbackCandidates.length ? Math.max(...fallbackCandidates) : NaN;
+    }
 
     function parsePct(boundary, maxMark) {
       const b = parseFloat(boundary);
@@ -454,7 +472,7 @@
       if (!rows.length) { vizSection.style.display = 'none'; return; }
       vizSection.style.display = '';
       renderStats(rows);
-      renderTrendChart(rows);
+      requestAnimationFrame(() => renderTrendChart(rows));
     }
 
     function renderStats(rows) {
@@ -470,8 +488,8 @@
         : '—';
 
       const stats = GRADE_KEYS.map((g, i) => {
-        const pcts = rows.map(r => parsePct(r[g], r['maximum mark after weighting'])).filter(v => v !== null);
-        const latestPct = latest ? parsePct(latest[g], latest['maximum mark after weighting']) : null;
+        const pcts = rows.map(r => parsePct(r[g], getReferenceMaxMark(r))).filter(v => v !== null);
+        const latestPct = latest ? parsePct(latest[g], getReferenceMaxMark(latest)) : null;
         const mean = pcts.length ? pcts.reduce((a, b) => a + b, 0) / pcts.length : null;
         return {
           label: GRADE_LABELS[i],
@@ -524,7 +542,7 @@
 
     function renderTrendChart(rows) {
       const canvas = document.getElementById('trendChart');
-      const cssW = canvas.offsetWidth || 800;
+      const cssW = canvas.getBoundingClientRect().width || canvas.parentElement?.getBoundingClientRect().width || 800;
       const cssH = 280;
       const dpr = window.devicePixelRatio || 1;
       canvas.width = Math.round(cssW * dpr);
@@ -532,34 +550,34 @@
       canvas.style.height = cssH + 'px';
 
       const ctx = canvas.getContext('2d');
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const W = cssW, H = cssH;
       const padT = 16, padB = 52, padL = 44, padR = 16;
       const cW = W - padL - padR, cH = H - padT - padB;
 
-      // Group by session key, average across options within each session
-      const sessionMap = new Map();
+      // Group by year and average across all matching rows in that year.
+      const yearMap = new Map();
       rows.forEach(r => {
-        const key = `${r.year}_${(r.month || '').toLowerCase()}`;
-        if (!sessionMap.has(key)) {
-          sessionMap.set(key, { year: r.year, month: (r.month || '').toLowerCase(), rows: [] });
+        const year = String(r.year || '').trim();
+        if (!year) return;
+        if (!yearMap.has(year)) {
+          yearMap.set(year, { year, rows: [] });
         }
-        sessionMap.get(key).rows.push(r);
+        yearMap.get(year).rows.push(r);
       });
 
-      const sessions = [...sessionMap.values()].sort((a, b) => {
+      const years = [...yearMap.values()].sort((a, b) => {
         const yA = Number(a.year) || 0, yB = Number(b.year) || 0;
-        if (yA !== yB) return yA - yB;
-        return monthRank(a.month) - monthRank(b.month);
+        return yA - yB;
       });
 
-      if (!sessions.length) return;
+      if (!years.length) return;
 
-      // Compute per-grade % at each session (average across rows in that session)
+      // Compute per-grade % at each year (average across rows in that year)
       const gradeData = {};
       CHART_GRADE_KEYS.forEach(g => {
-        gradeData[g] = sessions.map(s => {
-          const vals = s.rows.map(r => parsePct(r[g], r['maximum mark after weighting'])).filter(v => v !== null);
+        gradeData[g] = years.map(s => {
+          const vals = s.rows.map(r => parsePct(r[g], getReferenceMaxMark(r))).filter(v => v !== null);
           return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
         });
       });
@@ -574,7 +592,7 @@
       yMax = Math.min(100, Math.ceil((yMax + 5) / 10) * 10);
       if (yMax <= yMin) yMax = yMin + 20;
 
-      const xScale = i => padL + (sessions.length > 1 ? (i / (sessions.length - 1)) * cW : cW / 2);
+      const xScale = i => padL + (years.length > 1 ? (i / (years.length - 1)) * cW : cW / 2);
       const yScale = v => padT + cH - ((v - yMin) / (yMax - yMin)) * cH;
 
       ctx.clearRect(0, 0, W, H);
@@ -593,19 +611,19 @@
         ctx.fillText(yv + '%', padL - 5, y + 3.5);
       }
 
-      // X axis session labels (rotated)
-      const maxXLabels = Math.min(sessions.length, 14);
-      const xStep = Math.max(1, Math.ceil(sessions.length / maxXLabels));
+      // X axis year labels (rotated)
+      const maxXLabels = Math.min(years.length, 14);
+      const xStep = Math.max(1, Math.ceil(years.length / maxXLabels));
       ctx.fillStyle = '#999';
       ctx.font = `10px Inter, system-ui, sans-serif`;
-      sessions.forEach((s, i) => {
-        if (i % xStep !== 0 && i !== sessions.length - 1) return;
+      years.forEach((s, i) => {
+        if (i % xStep !== 0 && i !== years.length - 1) return;
         const x = xScale(i);
         ctx.save();
         ctx.translate(x, H - padB + 6);
         ctx.rotate(-Math.PI / 4);
         ctx.textAlign = 'right';
-        ctx.fillText(`${s.year} ${s.month.toUpperCase()}`, 0, 0);
+        ctx.fillText(String(s.year), 0, 0);
         ctx.restore();
       });
 
@@ -620,12 +638,16 @@
         data.forEach((v, i) => {
           if (v === null) { started = false; return; }
           const x = xScale(i), y = yScale(v);
-          if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); }
+          if (!started) {
+            ctx.moveTo(x, y);
+            started = true;
+          } else {
+            ctx.lineTo(x, y);
+          }
         });
         ctx.stroke();
 
-        // Dots (only if manageable number of sessions)
-        if (sessions.length <= 24) {
+        if (years.length <= 24) {
           data.forEach((v, i) => {
             if (v === null) return;
             ctx.fillStyle = color;

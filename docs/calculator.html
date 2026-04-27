@@ -16,7 +16,7 @@
       -webkit-font-smoothing: antialiased;
     }
     .container {
-      max-width: 1080px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 2rem 1.25rem;
     }
@@ -73,7 +73,7 @@
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 720px;
+      min-width: 820px;
       font-size: .875rem;
     }
     th, td {
@@ -91,11 +91,11 @@
       color: var(--c-ink-3);
       background: var(--c-bg);
       position: sticky;
-      top: var(--header-h);
+      top: calc(var(--header-h) + .1rem);
       z-index: 1;
     }
     tbody tr:first-child td {
-      padding-top: 1.5rem;
+      padding-top: 4rem;
     }
     input, select {
       width: 100%;
@@ -107,6 +107,7 @@
       font-size: .875rem;
       color: var(--c-ink);
       border-radius: 0;
+      appearance: none;
       -webkit-appearance: none;
     }
     input:focus, select:focus {
@@ -120,7 +121,7 @@
     .formula-section {
       margin-top: .9rem;
       border-left: 2px solid var(--c-border-dark);
-      padding-left: .85rem;
+      padding-left: 1rem;
     }
     .formula-section h3 {
       margin: 0 0 .25rem;
@@ -141,10 +142,15 @@
       margin-top: .2rem;
     }
     .formula-table {
-      min-width: unset;
-      width: auto;
+      min-width: 100%;
+      width: 100%;
       margin: .5rem 0 .75rem;
       font-size: .82rem;
+    }
+    .formula-table th:nth-child(2),
+    .formula-table td:nth-child(2) {
+      min-width: 20rem;
+      white-space: normal;
     }
     .formula-table th, .formula-table td { padding: .35rem .75rem; }
     .readonly { font-weight: 600; }
@@ -190,8 +196,8 @@
     /* Side-by-side layout: main calculator + PUM explanation */
     .calc-layout {
       display: grid;
-      grid-template-columns: 1fr minmax(240px, 720px);
-      gap: 1.25rem;
+      grid-template-columns: minmax(760px, 1.25fr) minmax(420px, 0.95fr);
+      gap: 1.5rem;
       align-items: start;
     }
     @media (max-width: 860px) {
@@ -255,6 +261,7 @@
                 <th>Raw Mark</th>
                 <th>Max Mark</th>
                 <th>PUM</th>
+                <th>Marks to Next PUM</th>
                 <th>Grade</th>
                 <th>Result (Session)</th>
                 <th>Action</th>
@@ -364,6 +371,64 @@
       if (!cleaned || cleaned === "–" || cleaned === "-") return NaN;
       const parsed = Number(cleaned);
       return Number.isFinite(parsed) ? parsed : NaN;
+    }
+
+    function rawForPumTarget(targetPum, thresholdRow, max) {
+      const astar = parseThresholdNumber(thresholdRow["a*"]);
+      const a = parseThresholdNumber(thresholdRow.a);
+      const b = parseThresholdNumber(thresholdRow.b);
+      const c = parseThresholdNumber(thresholdRow.c);
+      const d = parseThresholdNumber(thresholdRow.d);
+      const e = parseThresholdNumber(thresholdRow.e);
+      const hasAstar = Number.isFinite(astar);
+
+      if (targetPum >= 90 && hasAstar) {
+        return max > astar ? astar + (targetPum - 90) * (max - astar) / 10 : max;
+      }
+
+      if (targetPum >= 80) {
+        const upper = hasAstar ? astar : max;
+        const upperPum = hasAstar ? 90 : 100;
+        return Number.isFinite(a) && upper > a
+          ? a + (targetPum - 80) * (upper - a) / (upperPum - 80)
+          : upper;
+      }
+
+      if (targetPum >= 70) {
+        return Number.isFinite(b) && Number.isFinite(a) && a > b
+          ? b + (targetPum - 70) * (a - b) / 10
+          : b;
+      }
+
+      if (targetPum >= 60) {
+        return Number.isFinite(c) && Number.isFinite(b) && b > c
+          ? c + (targetPum - 60) * (b - c) / 10
+          : c;
+      }
+
+      if (targetPum >= 50) {
+        return Number.isFinite(d) && Number.isFinite(c) && c > d
+          ? d + (targetPum - 50) * (c - d) / 10
+          : d;
+      }
+
+      if (targetPum >= 40) {
+        return Number.isFinite(e) && Number.isFinite(d) && d > e
+          ? e + (targetPum - 40) * (d - e) / 10
+          : e;
+      }
+
+      return Number.isFinite(e) && e > 0 ? (targetPum * e) / 40 : NaN;
+    }
+
+    function marksToNextPum(raw, thresholdRow, max) {
+      const exactPum = rawToPum(raw, thresholdRow, max);
+      if (!Number.isFinite(exactPum)) return null;
+      const currentPum = Math.floor(exactPum);
+      if (currentPum >= 100) return null;
+      const targetRaw = rawForPumTarget(currentPum + 1, thresholdRow, max);
+      if (!Number.isFinite(targetRaw)) return null;
+      return Math.max(0, targetRaw - raw);
     }
 
     function monthRank(month) {
@@ -514,6 +579,10 @@
       return Number.isFinite(e) && e > 0 ? raw * 40 / e : 0;
     }
 
+    function formatMarksToNextPum(value) {
+      return Number.isFinite(value) ? value.toFixed(1) : "-";
+    }
+
     // --- Max mark tooltip ---
     const maxMarkTooltipEl = document.createElement("div");
     maxMarkTooltipEl.id = "maxMarkTooltip";
@@ -647,6 +716,10 @@
       pumCell.className = "readonly pum";
       pumCell.textContent = "-";
 
+      const nextPumCell = document.createElement("td");
+      nextPumCell.className = "readonly next-pum";
+      nextPumCell.textContent = "-";
+
       const gradeCell = document.createElement("td");
       gradeCell.className = "readonly grade";
       gradeCell.textContent = "-";
@@ -663,7 +736,7 @@
       removeButton.textContent = "Remove";
       actionCell.appendChild(removeButton);
 
-      row.append(subjectCell, optionCell, rawCell, maxCell, pumCell, gradeCell, statusCell, actionCell);
+      row.append(subjectCell, optionCell, rawCell, maxCell, pumCell, nextPumCell, gradeCell, statusCell, actionCell);
       marksBody.appendChild(row);
 
       subjectSelect.addEventListener("change", () => {
@@ -709,6 +782,7 @@
         const maxInput = row.querySelector(".max");
         let max = Number(maxInput.value);
         const pumCell = row.querySelector(".pum");
+        const nextPumCell = row.querySelector(".next-pum");
         const gradeCell = row.querySelector(".grade");
         const statusCell = row.querySelector(".status");
         row.querySelector(".remove").setAttribute("aria-label", `Remove ${label} row`);
@@ -716,6 +790,7 @@
         if (!subjectCode || !optionCode) {
           row.classList.add("error");
           pumCell.textContent = "Invalid";
+          nextPumCell.textContent = "-";
           gradeCell.textContent = "-";
           statusCell.textContent = "Add code/option";
           statusCell.className = "readonly status status-invalid";
@@ -741,6 +816,7 @@
         } catch (error) {
           row.classList.add("error");
           pumCell.textContent = "Invalid";
+          nextPumCell.textContent = "-";
           gradeCell.textContent = "-";
           statusCell.textContent = "Threshold missing";
           statusCell.className = "readonly status status-invalid";
@@ -751,6 +827,7 @@
         if (!Number.isFinite(raw) || !Number.isFinite(max) || max <= 0 || raw < 0 || raw > max) {
           row.classList.add("error");
           pumCell.textContent = "Invalid";
+          nextPumCell.textContent = "-";
           gradeCell.textContent = "-";
           statusCell.textContent = "Fix input";
           statusCell.className = "readonly status status-invalid";
@@ -758,13 +835,16 @@
           return;
         }
 
-        const pum = Math.min(100, Math.max(0, rawToPum(raw, thresholdRow, max)));
+        const pumExact = Math.min(100, Math.max(0, rawToPum(raw, thresholdRow, max)));
+        const pum = Math.floor(pumExact);
+        const nextPum = marksToNextPum(raw, thresholdRow, max);
         const grade = gradeFromThresholds(raw, thresholdRow);
         const isGraded = grade !== "U";
         const statusLabel = isGraded ? "Pass" : "U – Ungraded";
         const resultSession = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
 
-        pumCell.textContent = pum.toFixed(1);
+        pumCell.textContent = String(pum);
+        nextPumCell.textContent = formatMarksToNextPum(nextPum);
         gradeCell.textContent = grade;
         statusCell.textContent = `${statusLabel} (${resultSession.trim()})`;
         statusCell.className = `readonly status ${isGraded ? "status-pass" : "status-ungraded"}`;

@@ -54,7 +54,7 @@ jobs:
           python - <<'PY'
           import pandas as pd
 
-          df = pd.read_csv('output/schedule/schedule.csv')
+          df = pd.read_csv('docs/output/schedule/schedule.csv')
           required = {'id', 'pdf_links', 'subject_code', 'month', 'month_id', 'year'}
           missing = required.difference(df.columns)
           if missing:
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: schedule-data
-          path: output/schedule/schedule.csv
+          path: docs/output/schedule/schedule.csv
           retention-days: 30
 
   download-pdfs:
@@ -174,16 +174,16 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          tables = list(Path('output/tables').glob('*_all.csv'))
+          tables = list(Path('docs/output/tables').glob('*_all.csv'))
           if not tables:
-              raise SystemExit('No compiled tables generated in output/tables')
+              raise SystemExit('No compiled tables generated in docs/output/tables')
           print(f'compiled table count: {len(tables)}')
           PY
       - name: Upload compiled tables artifact
         uses: actions/upload-artifact@v4
         with:
           name: compiled-tables
-          path: output/tables
+          path: docs/output/tables
           retention-days: 30
 
   deploy-tables:
@@ -197,12 +197,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: compiled-tables
-          path: output/tables
+          path: docs/output/tables
       - name: Commit and push updated tables
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add output/tables
+          git add docs/output/tables
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else

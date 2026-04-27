@@ -51,7 +51,6 @@ def fetch_bytes(url: str) -> bytes:
 
 
 def ensure_output_dirs():
-    os.makedirs('output/schedule', exist_ok=True)
     os.makedirs('output/pdf', exist_ok=True)
     os.makedirs('output/csv', exist_ok=True)
     os.makedirs('docs/output/schedule', exist_ok=True)
