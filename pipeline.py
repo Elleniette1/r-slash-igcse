@@ -41,12 +41,12 @@ def schedule():
         list1.append(df1)
     df2 = pd.concat(list1)
     df2.set_index('id', inplace=True)
-    df2.to_csv('./output/schedule/schedule.csv', index=True)
-    logging.info("Schedule extraction completed. Output saved to './output/schedule/schedule.csv'")
+    df2.to_csv('./docs/output/schedule/schedule.csv', index=True)
+    logging.info("Schedule extraction completed. Output saved to './docs/output/schedule/schedule.csv'")
 
 @cli.command()
 def downtag():
-    schedule = pd.read_csv('./output/schedule/schedule.csv', index_col='id', dtype={'subject_code': str})
+    schedule = pd.read_csv('./docs/output/schedule/schedule.csv', index_col='id', dtype={'subject_code': str})
     for row in schedule.reset_index().itertuples():
         if not os.path.exists(f'./output/pdf/{row.id}.pdf'):
             with open(f'./output/pdf/{row.id}.pdf', 'wb') as f:
@@ -110,7 +110,7 @@ def compile():
                 df['month'] = csv[5:7]
                 subj_csv.append(df)
         subj_df = pd.concat(subj_csv, ignore_index=True)
-        subj_df.to_csv(f'output/table/{code}_all.csv', index=False)
+        subj_df.to_csv(f'docs/output/tables/{code}_all.csv', index=False)
 
 @cli.command()
 @click.pass_context

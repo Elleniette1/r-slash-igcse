@@ -54,7 +54,8 @@ def ensure_output_dirs():
     os.makedirs('output/schedule', exist_ok=True)
     os.makedirs('output/pdf', exist_ok=True)
     os.makedirs('output/csv', exist_ok=True)
-    os.makedirs('output/tables', exist_ok=True)
+    os.makedirs('docs/output/schedule', exist_ok=True)
+    os.makedirs('docs/output/tables', exist_ok=True)
 
 
 @click.group()
@@ -97,14 +98,14 @@ def schedule():
 
     df2 = pd.concat(list1)
     df2.set_index('id', inplace=True)
-    df2.to_csv('./output/schedule/schedule.csv', index=True)
-    logging.info("Schedule extraction completed. Output saved to './output/schedule/schedule.csv'")
+    df2.to_csv('./docs/output/schedule/schedule.csv', index=True)
+    logging.info("Schedule extraction completed. Output saved to './docs/output/schedule/schedule.csv'")
 
 
 @cli.command()
 def downtag():
     ensure_output_dirs()
-    schedule_df = pd.read_csv('./output/schedule/schedule.csv', index_col='id', dtype={'subject_code': str})
+    schedule_df = pd.read_csv('./docs/output/schedule/schedule.csv', index_col='id', dtype={'subject_code': str})
     rows = list(schedule_df.reset_index().itertuples())
     total = len(rows)
     logger.info(f'Starting PDF download step for {total} files.')
@@ -183,7 +184,7 @@ def compile():
                 subj_csv.append(df)
         if subj_csv:
             subj_df = pd.concat(subj_csv, ignore_index=True)
-            subj_df.to_csv(f'output/tables/{code}_all.csv', index=False)
+            subj_df.to_csv(f'docs/output/tables/{code}_all.csv', index=False)
 
 
 @cli.command()
