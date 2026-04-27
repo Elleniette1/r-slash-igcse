@@ -6,59 +6,120 @@
   <title>r/IGCSE Grade Boundaries</title>
   <link rel="stylesheet" href="site.css" />
   <style>
-    :root { color-scheme: light; font-family: Arial, sans-serif; }
-    body { margin: 0; background: #f4f6fb; color: #1a1f36; }
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--f-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Hero */
     .hero {
-      background: linear-gradient(135deg, #1a1f36 0%, #1f3a6e 100%);
+      background: var(--c-ink);
       color: #fff;
-      padding: 3.5rem 1.5rem 3rem;
+      padding: 5rem 1.5rem 4.5rem;
       text-align: center;
     }
-    .hero h1 { margin: 0 0 .75rem; font-size: 2rem; }
+    .hero-eyebrow {
+      font-family: var(--f-sans);
+      font-size: .7rem;
+      font-weight: 500;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.45);
+      margin: 0 0 1.1rem;
+    }
+    .hero h1 {
+      margin: 0 0 1.1rem;
+      font-family: var(--f-serif);
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -.01em;
+    }
     .hero p {
       margin: 0 auto;
-      max-width: 560px;
-      color: #b0b8d1;
-      font-size: 1.05rem;
-      line-height: 1.6;
+      max-width: 520px;
+      color: rgba(255,255,255,.55);
+      font-size: .95rem;
+      line-height: 1.75;
+      font-weight: 300;
     }
-    .container { max-width: 1080px; margin: 0 auto; padding: 1.5rem 1rem; }
+    /* Divider */
+    .section-rule {
+      border: none;
+      border-top: 1px solid var(--c-border);
+      margin: 0;
+    }
+    /* Container */
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem;
+    }
+    .section-label {
+      font-family: var(--f-sans);
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      margin: 0 0 2rem;
+    }
+    /* Feature grid */
     .feature-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
+      gap: 1px;
+      background: var(--c-border);
+      border: 1px solid var(--c-border);
     }
     .feature-card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
-      padding: 1.5rem;
+      background: var(--c-surface);
+      padding: 2rem;
       display: flex;
       flex-direction: column;
-      gap: .5rem;
+      gap: .6rem;
     }
-    .feature-icon { font-size: 2rem; line-height: 1; }
-    .feature-card h2 { margin: 0; font-size: 1.1rem; }
-    .feature-card p { margin: 0; color: #5c6370; line-height: 1.55; flex: 1; }
+    .feature-card h2 {
+      margin: 0;
+      font-family: var(--f-serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .feature-card p {
+      margin: 0;
+      color: var(--c-ink-2);
+      font-size: .875rem;
+      line-height: 1.7;
+      flex: 1;
+    }
     .feature-card a.btn {
       display: inline-block;
-      margin-top: .5rem;
-      background: #1f6feb;
+      margin-top: .75rem;
+      background: var(--c-ink);
       color: #fff;
       text-decoration: none;
-      border-radius: 8px;
-      padding: .55rem 1rem;
-      font-weight: 600;
-      font-size: .9rem;
+      padding: .55rem 1.1rem;
+      font-family: var(--f-sans);
+      font-weight: 500;
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
       align-self: flex-start;
-      transition: background .15s;
+      transition: opacity .15s;
     }
-    .feature-card a.btn:hover { background: #1558c9; }
+    .feature-card a.btn:hover { opacity: .75; }
     footer {
       text-align: center;
-      color: #8b96b7;
-      font-size: .8rem;
-      padding: 2rem 1rem;
+      color: var(--c-ink-3);
+      font-size: .75rem;
+      letter-spacing: .04em;
+      padding: 2.5rem 1rem 3rem;
+      border-top: 1px solid var(--c-border);
     }
   </style>
 </head>
@@ -74,26 +135,27 @@
   </header>
 
   <div class="hero">
-    <h1>r/IGCSE Grade Boundaries</h1>
-    <p>Explore CAIE A-Level and AS-Level grade threshold data, calculate your grades from raw marks, and download compiled CSV files.</p>
+    <p class="hero-eyebrow">Open Data · CAIE A-Level &amp; AS-Level</p>
+    <h1>r/IGCSE<br>Grade Boundaries</h1>
+    <p>Explore historical threshold data, calculate your grades from raw marks, and download compiled CSV files.</p>
   </div>
 
+  <hr class="section-rule" />
+
   <div class="container">
+    <p class="section-label">Tools</p>
     <div class="feature-grid">
       <div class="feature-card">
-        <div class="feature-icon">🧮</div>
         <h2>Grade Calculator</h2>
         <p>Enter your subject codes, option codes, and raw marks to instantly calculate your PUM and predicted grade using the latest CAIE published thresholds.</p>
         <a class="btn" href="calculator.html">Open Calculator</a>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📊</div>
         <h2>Historical Thresholds</h2>
-        <p>Browse the full history of grade boundaries for any CAIE subject across all exam sessions, options, and years in an interactive table.</p>
+        <p>Browse the full history of grade boundaries for any CAIE subject across all exam sessions, with trend visualisations and summary statistics.</p>
         <a class="btn" href="thresholds.html">Browse Thresholds</a>
       </div>
       <div class="feature-card">
-        <div class="feature-icon">📥</div>
         <h2>CSV Downloads</h2>
         <p>Download compiled grade boundary CSV files for any subject. Data is sourced from CAIE published documents and updated monthly via automated pipeline.</p>
         <a class="btn" href="downloads.html">Download CSVs</a>

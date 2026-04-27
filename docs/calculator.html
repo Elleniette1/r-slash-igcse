@@ -6,155 +6,212 @@
   <title>Calculator – r/IGCSE Grade Boundaries</title>
   <link rel="stylesheet" href="site.css" />
   <style>
-    :root {
-      color-scheme: light;
-      font-family: Arial, sans-serif;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { color-scheme: light; }
     body {
       margin: 0;
-      background: #f4f6fb;
-      color: #1a1f36;
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--f-sans);
+      -webkit-font-smoothing: antialiased;
     }
     .container {
       max-width: 1080px;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 2rem 1.25rem;
     }
     .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-      padding: 1rem;
-      margin-bottom: 1rem;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
     }
-    h1, h2 {
-      margin: 0 0 .75rem;
+    .card-title {
+      font-family: var(--f-serif);
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 0 0 .3rem;
     }
+    .card-subtitle {
+      color: var(--c-ink-2);
+      font-size: .875rem;
+      margin: 0 0 1.1rem;
+      line-height: 1.6;
+    }
+    h1, h2 { font-family: var(--f-serif); margin: 0 0 .75rem; }
+    h1 { font-size: 1.55rem; font-weight: 700; }
+    h2 { font-size: 1.2rem; font-weight: 700; }
     .toolbar {
       display: flex;
       gap: .5rem;
       flex-wrap: wrap;
-      margin-bottom: .75rem;
+      align-items: center;
+      margin-bottom: .9rem;
     }
     button {
-      border: 0;
-      border-radius: 8px;
-      padding: .55rem .8rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: #1f6feb;
+      border: 1px solid var(--c-ink);
+      background: var(--c-ink);
       color: #fff;
+      padding: .5rem 1rem;
+      font-family: var(--f-sans);
+      font-weight: 500;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity .15s;
     }
+    button:hover { opacity: .75; }
     button.secondary {
-      background: #5c6370;
+      background: transparent;
+      color: var(--c-ink);
+      border-color: var(--c-border-dark);
+      font-size: .68rem;
     }
-    .table-wrap {
-      overflow-x: auto;
-    }
+    button.secondary:hover { background: var(--c-bg); opacity: 1; }
+    .table-wrap { overflow-x: auto; }
     table {
       border-collapse: collapse;
       width: 100%;
       min-width: 720px;
+      font-size: .875rem;
     }
     th, td {
-      border-bottom: 1px solid #e6e9f0;
-      padding: .5rem;
+      border-bottom: 1px solid var(--c-border);
+      padding: .55rem .6rem;
       text-align: left;
       vertical-align: middle;
+    }
+    thead th {
+      font-family: var(--f-sans);
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      background: var(--c-bg);
+      position: sticky;
+      top: var(--header-h);
     }
     input, select {
       width: 100%;
       box-sizing: border-box;
-      border: 1px solid #ccd2df;
-      border-radius: 6px;
-      padding: .45rem;
-      background: #fff;
-      font-family: inherit;
-      font-size: inherit;
+      border: 1px solid var(--c-border-dark);
+      padding: .42rem .55rem;
+      background: var(--c-surface);
+      font-family: var(--f-sans);
+      font-size: .875rem;
+      color: var(--c-ink);
+      border-radius: 0;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus {
+      outline: 2px solid var(--c-ink);
+      outline-offset: -1px;
     }
     .error input, .error select {
-      border-color: #d92d20;
-      background: #fff4f3;
+      border-color: #b91c1c;
+      background: #fef2f2;
     }
     .formula-section {
-      margin-top: .75rem;
-      border-left: 3px solid #1f6feb;
-      padding-left: .75rem;
+      margin-top: .9rem;
+      border-left: 2px solid var(--c-border-dark);
+      padding-left: .85rem;
     }
     .formula-section h3 {
-      margin: 0 0 .3rem;
-      font-size: .95rem;
-      color: #1f6feb;
+      margin: 0 0 .25rem;
+      font-family: var(--f-sans);
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
     }
     .formula {
-      background: #f0f4ff;
-      border-radius: 6px;
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
       padding: .5rem .75rem;
-      font-family: monospace;
-      font-size: .9rem;
-      color: #1a1f36;
-      margin-top: .25rem;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: .82rem;
+      color: var(--c-ink);
+      margin-top: .2rem;
     }
     .formula-table {
       min-width: unset;
       width: auto;
       margin: .5rem 0 .75rem;
+      font-size: .82rem;
     }
-    .formula-table th, .formula-table td {
-      padding: .35rem .75rem;
-    }
-    .readonly {
-      font-weight: 700;
-    }
-    .status-pass {
-      color: #067647;
-      font-weight: 700;
-    }
-    .status-ungraded {
-      color: #d92d20;
-      font-weight: 700;
-    }
-    .status-invalid {
-      color: #d92d20;
-      font-weight: 700;
-    }
+    .formula-table th, .formula-table td { padding: .35rem .75rem; }
+    .readonly { font-weight: 600; }
+    .status-pass   { color: #15803d; font-weight: 600; }
+    .status-ungraded { color: #b91c1c; font-weight: 600; }
+    .status-invalid  { color: #b91c1c; font-weight: 600; }
     .error-box {
-      border-radius: 8px;
-      background: #fff4f3;
-      border: 1px solid #f4b4af;
-      padding: .6rem;
-      color: #b42318;
-      margin: .5rem 0 .75rem;
+      border: 1px solid #fca5a5;
+      background: #fef2f2;
+      padding: .65rem .85rem;
+      color: #991b1b;
+      font-size: .85rem;
+      margin: .5rem 0 .9rem;
       display: none;
     }
     .metrics {
       display: grid;
-      grid-template-columns: repeat(2, minmax(160px, 1fr));
-      gap: .75rem;
-      margin-top: .75rem;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      gap: 1px;
+      background: var(--c-border);
+      border: 1px solid var(--c-border);
+      margin-top: 1.1rem;
     }
     .metric {
-      background: #f8f9fd;
-      border-radius: 8px;
-      padding: .6rem;
+      background: var(--c-surface);
+      padding: .85rem 1rem;
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
     }
     .metric strong {
       display: block;
-      font-size: 1.2rem;
+      font-family: var(--f-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--c-ink);
       margin-top: .15rem;
     }
     .charts {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: .75rem;
+      gap: 1.25rem;
+    }
+    .chart-label {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+      margin: 0 0 .5rem;
     }
     canvas {
       width: 100%;
       height: 220px;
-      border: 1px solid #e6e9f0;
-      border-radius: 10px;
-      background: #fff;
+      border: 1px solid var(--c-border);
+      background: var(--c-surface);
     }
+    /* Session select inline */
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .04em;
+    }
+    .toolbar label select { width: auto; font-size: .8rem; }
   </style>
 </head>
 <body>
@@ -169,14 +226,14 @@
   </header>
   <div class="container">
     <div class="card">
-      <h1>A Level Marks Calculator</h1>
-      <p>Enter subject code, option, and your total combined raw mark. The grade is determined by direct comparison to CAIE published boundaries.</p>
+      <h1>Grade Calculator</h1>
+      <p class="card-subtitle">Enter subject code, option, and your total combined raw mark. Grade is determined by direct comparison to CAIE published boundaries.</p>
       <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
       <div class="toolbar">
-        <button id="addRow" type="button">Add Subject Row</button>
-        <label style="display:flex;align-items:center;gap:.4rem;font-weight:600;">
+        <button id="addRow" type="button">+ Add Subject</button>
+        <label>
           Session:
-          <select id="sessionSelect" style="width:auto;font-weight:normal;">
+          <select id="sessionSelect">
             <option value="">Latest (auto)</option>
             <option value="2025 on">2025 ON</option>
             <option value="2025 mj">2025 MJ</option>
@@ -219,22 +276,21 @@
     </div>
 
     <div class="card">
-      <h2>Marks Graphs</h2>
+      <h2>Marks Charts</h2>
       <div class="charts">
         <div>
-          <p><strong>Raw Marks by Subject</strong></p>
+          <p class="chart-label">Raw Marks by Subject</p>
           <canvas id="rawChart" width="500" height="220" role="img" aria-label="Bar chart showing raw marks by subject"></canvas>
         </div>
         <div>
-          <p><strong>Avg Grade Boundary % by Subject</strong></p>
-          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing average grade boundary percentage across subjects"></canvas>
+          <p class="chart-label">Avg Historical Grade Boundary %</p>
+          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing average historical grade boundary percentage by subject"></canvas>
         </div>
       </div>
     </div>
 
     <div class="card">
       <h2>How PUM is Calculated</h2>
-      <p>The <strong>Percentage Uniform Mark (PUM)</strong> maps your raw marks onto a 0–100 scale using CAIE grade boundaries as fixed anchor points. Your raw mark is interpolated linearly within the band for your grade.</p>
       <table class="formula-table">
         <thead>
           <tr><th>Grade</th><th>PUM range</th><th>Notes</th></tr>
@@ -506,14 +562,14 @@
       display: "none",
       position: "fixed",
       zIndex: "1000",
-      background: "#fff",
-      border: "1px solid #ccd2df",
-      borderRadius: "8px",
+      background: "#ffffff",
+      border: "1px solid #e0ddd5",
+      borderRadius: "0",
       padding: ".6rem .75rem",
-      boxShadow: "0 4px 16px rgba(15,23,42,.12)",
+      boxShadow: "0 4px 16px rgba(0,0,0,.08)",
       maxWidth: "700px",
       overflowX: "auto",
-      fontFamily: "monospace",
+      fontFamily: "'SFMono-Regular', Consolas, monospace",
       fontSize: ".78rem",
       whiteSpace: "pre",
       lineHeight: "1.5"
@@ -755,7 +811,7 @@
         statusCell.textContent = `${statusLabel} (${resultSession.trim()})`;
         statusCell.className = `readonly status ${isGraded ? "status-pass" : "status-ungraded"}`;
 
-        validRows.push({ subject: label, raw, pum, grade, avgGradePercent: avgGradePercent ?? pum });
+        validRows.push({ subject: label, raw, pum, grade, avgGradePercent });
       }));
 
       if (runId !== recalculateRunId) return;
@@ -792,8 +848,9 @@
           ? "All Passed"
           : `${ungradedCount} Ungraded`;
 
-      drawBarChart("rawChart", validRows.map((r) => r.subject), validRows.map((r) => r.raw), "#1f6feb");
-      drawLineChart("pumChart", validRows.map((r) => r.subject), validRows.map((r) => r.avgGradePercent), "#7a3cff");
+      drawBarChart("rawChart", validRows.map((r) => r.subject), validRows.map((r) => r.raw), "#111111");
+      const boundaryRows = validRows.filter((r) => r.avgGradePercent !== null);
+      drawLineChart("pumChart", boundaryRows.map((r) => r.subject), boundaryRows.map((r) => r.avgGradePercent), "#1e3a5f");
     }
 
     function drawBarChart(canvasId, labels, values, color) {
@@ -805,7 +862,8 @@
 
       if (!values.length) {
         canvas.setAttribute("aria-label", "Raw marks chart: no valid rows to plot");
-        ctx.fillStyle = "#5c6370";
+        ctx.fillStyle = "#999999";
+        ctx.font = "12px Inter, system-ui, sans-serif";
         ctx.fillText("No valid rows to plot.", 12, 30);
         return;
       }
@@ -823,8 +881,8 @@
 
         ctx.fillStyle = color;
         ctx.fillRect(x, y, barWidth, barHeight);
-        ctx.fillStyle = "#1a1f36";
-        ctx.font = "12px Arial";
+        ctx.fillStyle = "#111111";
+        ctx.font = "11px Inter, system-ui, sans-serif";
         ctx.fillText(String(v.toFixed(1)), x, y - 4);
         ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x, h - 10);
       });
@@ -838,12 +896,13 @@
       ctx.clearRect(0, 0, w, h);
 
       if (!values.length) {
-        canvas.setAttribute("aria-label", "PUM chart: no valid rows to plot");
-        ctx.fillStyle = "#5c6370";
+        canvas.setAttribute("aria-label", "Avg grade boundary chart: no valid rows to plot");
+        ctx.fillStyle = "#999999";
+        ctx.font = "12px Inter, system-ui, sans-serif";
         ctx.fillText("No valid rows to plot.", 12, 30);
         return;
       }
-      canvas.setAttribute("aria-label", "PUM chart across subjects");
+      canvas.setAttribute("aria-label", "Avg grade boundary chart across subjects");
 
       const padding = 30;
       const xStep = values.length > 1 ? (w - padding * 2) / (values.length - 1) : 0;
@@ -866,8 +925,8 @@
         ctx.beginPath();
         ctx.arc(x, y, DATA_POINT_RADIUS, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#1a1f36";
-        ctx.font = "12px Arial";
+        ctx.fillStyle = "#111111";
+        ctx.font = "11px Inter, system-ui, sans-serif";
         ctx.fillText(v.toFixed(1), x - 10, y - 8);
         ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x - 12, h - 10);
       });

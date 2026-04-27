@@ -6,67 +6,90 @@
   <title>Historical Thresholds – r/IGCSE Grade Boundaries</title>
   <link rel="stylesheet" href="site.css" />
   <style>
-    :root { color-scheme: light; font-family: Arial, sans-serif; }
-    body { margin: 0; background: #f4f6fb; color: #1a1f36; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
-      padding: 1rem;
-      margin-bottom: 1rem;
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--f-sans);
+      -webkit-font-smoothing: antialiased;
     }
-    h1 { margin: 0 0 .4rem; }
-    .subtitle { color: #5c6370; margin: 0 0 .9rem; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.25rem; }
+    .card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-family: var(--f-serif);
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 0 0 .3rem;
+    }
+    .card-subtitle { color: var(--c-ink-2); font-size: .875rem; margin: 0 0 1.1rem; line-height: 1.6; }
+    h1 { font-family: var(--f-serif); font-size: 1.55rem; font-weight: 700; margin: 0 0 .3rem; }
+    h2 { font-family: var(--f-serif); font-size: 1.2rem; font-weight: 700; margin: 0 0 .4rem; }
+    .subtitle { color: var(--c-ink-2); font-size: .875rem; margin: 0 0 1.1rem; }
     .toolbar {
       display: flex;
       gap: .5rem;
       flex-wrap: wrap;
       align-items: center;
-      margin-bottom: .75rem;
+      margin-bottom: .9rem;
     }
     .toolbar label {
-      font-weight: 600;
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .04em;
       display: flex;
       align-items: center;
       gap: .4rem;
       white-space: nowrap;
     }
     select {
-      border: 1px solid #ccd2df;
-      border-radius: 6px;
-      padding: .45rem;
-      background: #fff;
-      font-family: inherit;
-      font-size: inherit;
+      border: 1px solid var(--c-border-dark);
+      padding: .42rem .55rem;
+      background: var(--c-surface);
+      font-family: var(--f-sans);
+      font-size: .875rem;
+      color: var(--c-ink);
+      border-radius: 0;
+      -webkit-appearance: none;
     }
+    select:focus { outline: 2px solid var(--c-ink); outline-offset: -1px; }
     button {
-      border: 0;
-      border-radius: 8px;
-      padding: .55rem .8rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: #1f6feb;
+      border: 1px solid var(--c-ink);
+      background: var(--c-ink);
       color: #fff;
-      font-family: inherit;
-      font-size: inherit;
+      padding: .48rem 1rem;
+      font-family: var(--f-sans);
+      font-weight: 500;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity .15s;
     }
-    button:disabled { opacity: .45; cursor: default; }
+    button:hover { opacity: .75; }
+    button:disabled { opacity: .35; cursor: default; }
     .badge {
       display: inline-flex;
       align-items: center;
-      background: #e8f0fe;
-      color: #1f6feb;
-      border-radius: 12px;
-      padding: .2rem .65rem;
-      font-size: .8rem;
-      font-weight: 700;
+      background: var(--c-bg);
+      color: var(--c-ink-2);
+      border: 1px solid var(--c-border);
+      padding: .18rem .65rem;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
     }
     .table-wrap { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; min-width: 620px; }
+    table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .875rem; }
     th, td {
-      border-bottom: 1px solid #e6e9f0;
-      padding: .45rem .6rem;
+      border-bottom: 1px solid var(--c-border);
+      padding: .5rem .6rem;
       text-align: right;
       vertical-align: middle;
       white-space: nowrap;
@@ -75,18 +98,65 @@
     th:nth-child(2), td:nth-child(2),
     th:nth-child(3), td:nth-child(3) { text-align: left; }
     thead th {
-      background: #f8f9fd;
-      font-size: .82rem;
-      color: #5c6370;
+      background: var(--c-bg);
+      font-family: var(--f-sans);
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--c-ink-3);
       text-transform: uppercase;
-      letter-spacing: .04em;
+      letter-spacing: .1em;
       position: sticky;
-      top: 52px;
+      top: var(--header-h);
     }
-    tbody tr:hover { background: #f4f6fb; }
-    td.dash { color: #b0b8d1; }
-    .empty-state { text-align: center; color: #5c6370; padding: 2.5rem 1rem; }
-    .error-msg { color: #b42318; padding: .4rem 0; }
+    tbody tr:hover { background: var(--c-bg); }
+    td.dash { color: var(--c-ink-3); }
+    .empty-state { text-align: center; color: var(--c-ink-3); padding: 3rem 1rem; font-size: .9rem; }
+    .error-msg { color: #b91c1c; font-size: .875rem; padding: .4rem 0; }
+
+    /* Visualisation section */
+    #vizSection { display: none; }
+    .stats-table { min-width: unset; width: 100%; }
+    .stats-table thead th { text-align: left; }
+    .stats-table td { text-align: left; }
+    .stats-table td:not(:first-child) { font-variant-numeric: tabular-nums; }
+    .grade-chip {
+      display: inline-block;
+      font-weight: 700;
+      font-size: .8rem;
+      letter-spacing: .04em;
+      min-width: 2rem;
+    }
+    /* Trend chart */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+    #trendChart {
+      width: 100%;
+      height: 280px;
+      border: 1px solid var(--c-border);
+      background: var(--c-surface);
+      display: block;
+    }
+    .chart-legend {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: .75rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .78rem;
+      color: var(--c-ink-2);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
@@ -142,6 +212,22 @@
             <tr><td colspan="10" class="empty-state">Select a subject above to view threshold data.</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <div id="vizSection">
+      <div class="card">
+        <h2>Summary Statistics</h2>
+        <p class="subtitle">Grade boundary as a percentage of maximum mark across all loaded sessions for the selected filter.</p>
+        <div class="table-wrap" id="statsWrap"></div>
+      </div>
+      <div class="card">
+        <h2>Grade Boundary Trends</h2>
+        <p class="subtitle">Boundary as % of maximum mark over time — oldest sessions on left, newest on right.</p>
+        <div class="chart-wrap">
+          <canvas id="trendChart" role="img" aria-label="Line chart of grade boundary trends over time"></canvas>
+        </div>
+        <div class="chart-legend" id="chartLegend"></div>
       </div>
     </div>
   </div>
@@ -267,6 +353,7 @@
         ? currentRows.filter(r => String(r.option || '').trim().toUpperCase() === option)
         : currentRows;
       renderTable(rows);
+      updateViz(rows);
     }
 
     async function loadSubject(code) {
@@ -276,6 +363,7 @@
       downloadBtn.disabled = true;
       optionSelect.innerHTML = '<option value="">All options</option>';
       optionSelect.disabled = true;
+      document.getElementById('vizSection').style.display = 'none';
       try {
         const res = await fetch(`${TABLES_BASE_PATH}/${code}_all.csv`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`No table found for subject ${code}.`);
@@ -320,6 +408,7 @@
         optionSelect.disabled = true;
         downloadBtn.disabled = true;
         rowCountEl.style.display = 'none';
+        document.getElementById('vizSection').style.display = 'none';
       }
     });
 
@@ -331,6 +420,225 @@
       a.href = `${TABLES_BASE_PATH}/${currentSubject}_all.csv`;
       a.download = `${currentSubject}_all.csv`;
       a.click();
+    });
+
+    /* ── Visualisations ──────────────────────────────────────── */
+
+    const GRADE_KEYS   = ['a*', 'a', 'b', 'c', 'd', 'e'];
+    const GRADE_LABELS = ['A*', 'A', 'B', 'C', 'D', 'E'];
+    const GRADE_COLORS = {
+      'a*': '#111111',
+      'a':  '#2563eb',
+      'b':  '#059669',
+      'c':  '#d97706',
+      'd':  '#9333ea',
+      'e':  '#ef4444'
+    };
+
+    function parsePct(boundary, maxMark) {
+      const b = parseFloat(boundary);
+      const m = parseFloat(maxMark);
+      return (isFinite(b) && isFinite(m) && m > 0) ? (b / m) * 100 : null;
+    }
+
+    function updateViz(rows) {
+      const vizSection = document.getElementById('vizSection');
+      if (!rows.length) { vizSection.style.display = 'none'; return; }
+      vizSection.style.display = '';
+      renderStats(rows);
+      renderTrendChart(rows);
+    }
+
+    function renderStats(rows) {
+      // Find latest session row (for "Latest" column)
+      const sorted = [...rows].sort((a, b) => {
+        const yA = Number(a.year) || 0, yB = Number(b.year) || 0;
+        if (yA !== yB) return yB - yA;
+        return monthRank(b.month) - monthRank(a.month);
+      });
+      const latest = sorted[0] || null;
+      const latestLabel = latest
+        ? `${latest.year} ${(latest.month || '').toUpperCase()}`
+        : '—';
+
+      const stats = GRADE_KEYS.map((g, i) => {
+        const pcts = rows.map(r => parsePct(r[g], r['maximum mark after weighting'])).filter(v => v !== null);
+        const latestPct = latest ? parsePct(latest[g], latest['maximum mark after weighting']) : null;
+        const mean = pcts.length ? pcts.reduce((a, b) => a + b, 0) / pcts.length : null;
+        return {
+          label: GRADE_LABELS[i],
+          color: GRADE_COLORS[g],
+          count: pcts.length,
+          mean,
+          min: pcts.length ? Math.min(...pcts) : null,
+          max: pcts.length ? Math.max(...pcts) : null,
+          latest: latestPct
+        };
+      });
+
+      const fmt = v => (v !== null ? v.toFixed(1) + '%' : '—');
+
+      const table = document.createElement('table');
+      table.className = 'stats-table';
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Grade</th>
+            <th>Mean %</th>
+            <th>Min %</th>
+            <th>Max %</th>
+            <th>Latest (${latestLabel})</th>
+            <th>Sessions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${stats.map(s => `<tr>
+            <td><span class="grade-chip" style="color:${s.color}">${s.label}</span></td>
+            <td>${fmt(s.mean)}</td>
+            <td>${fmt(s.min)}</td>
+            <td>${fmt(s.max)}</td>
+            <td>${fmt(s.latest)}</td>
+            <td>${s.count}</td>
+          </tr>`).join('')}
+        </tbody>
+      `;
+      const wrap = document.getElementById('statsWrap');
+      wrap.innerHTML = '';
+      wrap.appendChild(table);
+    }
+
+    function renderTrendChart(rows) {
+      const canvas = document.getElementById('trendChart');
+      const cssW = canvas.offsetWidth || 800;
+      const cssH = 280;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      canvas.style.height = cssH + 'px';
+
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      const W = cssW, H = cssH;
+      const padT = 16, padB = 52, padL = 44, padR = 16;
+      const cW = W - padL - padR, cH = H - padT - padB;
+
+      // Group by session key, average across options within each session
+      const sessionMap = new Map();
+      rows.forEach(r => {
+        const key = `${r.year}_${(r.month || '').toLowerCase()}`;
+        if (!sessionMap.has(key)) {
+          sessionMap.set(key, { year: r.year, month: (r.month || '').toLowerCase(), rows: [] });
+        }
+        sessionMap.get(key).rows.push(r);
+      });
+
+      const sessions = [...sessionMap.values()].sort((a, b) => {
+        const yA = Number(a.year) || 0, yB = Number(b.year) || 0;
+        if (yA !== yB) return yA - yB;
+        return monthRank(a.month) - monthRank(b.month);
+      });
+
+      if (!sessions.length) return;
+
+      // Compute per-grade % at each session (average across rows in that session)
+      const gradeData = {};
+      GRADE_KEYS.forEach(g => {
+        gradeData[g] = sessions.map(s => {
+          const vals = s.rows.map(r => parsePct(r[g], r['maximum mark after weighting'])).filter(v => v !== null);
+          return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+        });
+      });
+
+      // Y axis range
+      let yMin = Infinity, yMax = -Infinity;
+      GRADE_KEYS.forEach(g => gradeData[g].forEach(v => {
+        if (v !== null) { yMin = Math.min(yMin, v); yMax = Math.max(yMax, v); }
+      }));
+      if (!isFinite(yMin)) { yMin = 0; yMax = 100; }
+      yMin = Math.max(0, Math.floor((yMin - 5) / 10) * 10);
+      yMax = Math.min(100, Math.ceil((yMax + 5) / 10) * 10);
+      if (yMax <= yMin) yMax = yMin + 20;
+
+      const xScale = i => padL + (sessions.length > 1 ? (i / (sessions.length - 1)) * cW : cW / 2);
+      const yScale = v => padT + cH - ((v - yMin) / (yMax - yMin)) * cH;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Grid lines + Y labels
+      const ySteps = Math.round((yMax - yMin) / 10);
+      ctx.strokeStyle = '#e8e5df';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#999';
+      ctx.font = `10px Inter, system-ui, sans-serif`;
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= ySteps; i++) {
+        const yv = yMin + i * 10;
+        const y = yScale(yv);
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + cW, y); ctx.stroke();
+        ctx.fillText(yv + '%', padL - 5, y + 3.5);
+      }
+
+      // X axis session labels (rotated)
+      const maxXLabels = Math.min(sessions.length, 14);
+      const xStep = Math.max(1, Math.ceil(sessions.length / maxXLabels));
+      ctx.fillStyle = '#999';
+      ctx.font = `10px Inter, system-ui, sans-serif`;
+      sessions.forEach((s, i) => {
+        if (i % xStep !== 0 && i !== sessions.length - 1) return;
+        const x = xScale(i);
+        ctx.save();
+        ctx.translate(x, H - padB + 6);
+        ctx.rotate(-Math.PI / 4);
+        ctx.textAlign = 'right';
+        ctx.fillText(`${s.year} ${s.month.toUpperCase()}`, 0, 0);
+        ctx.restore();
+      });
+
+      // Grade lines
+      GRADE_KEYS.forEach(g => {
+        const data = gradeData[g];
+        const color = GRADE_COLORS[g];
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        let started = false;
+        data.forEach((v, i) => {
+          if (v === null) { started = false; return; }
+          const x = xScale(i), y = yScale(v);
+          if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); }
+        });
+        ctx.stroke();
+
+        // Dots (only if manageable number of sessions)
+        if (sessions.length <= 24) {
+          data.forEach((v, i) => {
+            if (v === null) return;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(xScale(i), yScale(v), 2.5, 0, Math.PI * 2);
+            ctx.fill();
+          });
+        }
+      });
+
+      // Legend
+      const legendEl = document.getElementById('chartLegend');
+      legendEl.innerHTML = GRADE_KEYS.map((g, i) =>
+        `<span class="legend-item"><span class="legend-dot" style="background:${GRADE_COLORS[g]}"></span>${GRADE_LABELS[i]}</span>`
+      ).join('');
+    }
+
+    // Re-render chart on window resize
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const option = optionSelect.value;
+        const rows = option
+          ? currentRows.filter(r => String(r.option || '').trim().toUpperCase() === option)
+          : currentRows;
+        if (rows.length) renderTrendChart(rows);
+      }, 150);
     });
   </script>
 </body>

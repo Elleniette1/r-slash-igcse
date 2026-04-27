@@ -6,65 +6,86 @@
   <title>CSV Downloads – r/IGCSE Grade Boundaries</title>
   <link rel="stylesheet" href="site.css" />
   <style>
-    :root { color-scheme: light; font-family: Arial, sans-serif; }
-    body { margin: 0; background: #f4f6fb; color: #1a1f36; }
-    .container { max-width: 900px; margin: 0 auto; padding: 1rem; }
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, .08);
-      padding: 1rem;
-      margin-bottom: 1rem;
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--f-sans);
+      -webkit-font-smoothing: antialiased;
     }
-    h1 { margin: 0 0 .4rem; }
-    .subtitle { color: #5c6370; margin: 0 0 .9rem; }
-    .search-wrap { margin-bottom: .75rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem; }
+    .card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    h1 { font-family: var(--f-serif); font-size: 1.55rem; font-weight: 700; margin: 0 0 .3rem; }
+    .subtitle { color: var(--c-ink-2); font-size: .875rem; margin: 0 0 1.1rem; line-height: 1.6; }
+    .search-wrap {
+      margin-bottom: .85rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
     .search-wrap input {
       width: 100%;
-      max-width: 320px;
-      box-sizing: border-box;
-      border: 1px solid #ccd2df;
-      border-radius: 6px;
-      padding: .45rem .7rem;
-      font-family: inherit;
-      font-size: inherit;
+      max-width: 300px;
+      border: 1px solid var(--c-border-dark);
+      padding: .42rem .65rem;
+      font-family: var(--f-sans);
+      font-size: .875rem;
+      color: var(--c-ink);
+      background: var(--c-surface);
+      border-radius: 0;
+      -webkit-appearance: none;
     }
+    .search-wrap input:focus { outline: 2px solid var(--c-ink); outline-offset: -1px; }
     .badge {
       display: inline-flex;
       align-items: center;
-      background: #e8f0fe;
-      color: #1f6feb;
-      border-radius: 12px;
-      padding: .2rem .65rem;
-      font-size: .8rem;
-      font-weight: 700;
+      background: var(--c-bg);
+      color: var(--c-ink-2);
+      border: 1px solid var(--c-border);
+      padding: .18rem .65rem;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
     }
     .file-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: .5rem;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 1px;
+      background: var(--c-border);
+      border: 1px solid var(--c-border);
     }
     .file-item {
-      background: #f8f9fd;
-      border: 1px solid #e6e9f0;
-      border-radius: 8px;
-      padding: .6rem .5rem;
+      background: var(--c-surface);
+      padding: .75rem .5rem;
       text-align: center;
       text-decoration: none;
-      color: #1a1f36;
+      color: var(--c-ink);
       font-weight: 600;
-      font-size: .9rem;
-      transition: background .15s, border-color .15s;
+      font-size: .875rem;
+      transition: background .12s;
       display: flex;
       flex-direction: column;
       gap: .2rem;
       align-items: center;
     }
-    .file-item:hover { background: #e8f0fe; border-color: #1f6feb; color: #1f6feb; }
-    .file-item .icon { font-size: 1.3rem; }
-    .file-item .ext { font-size: .7rem; color: #8b96b7; font-weight: 400; }
-    .file-item:hover .ext { color: #5a9ef0; }
-    .no-results { color: #5c6370; padding: 1.5rem 0; display: none; }
+    .file-item:hover { background: var(--c-bg); }
+    .file-item .ext {
+      font-size: .65rem;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+    }
+    .file-item:hover .ext { color: var(--c-ink-2); }
+    .no-results { color: var(--c-ink-3); padding: 1.5rem 0; display: none; font-size: .875rem; }
   </style>
 </head>
 <body>
@@ -126,7 +147,7 @@
         a.href = `${TABLES_BASE_PATH}/${code}_all.csv`;
         a.download = `${code}_all.csv`;
         a.title = `Download ${code}_all.csv`;
-        a.innerHTML = `<span class="icon">📄</span><span>${code}</span><span class="ext">CSV</span>`;
+        a.innerHTML = `<span>${code}</span><span class="ext">CSV</span>`;
         fileGrid.appendChild(a);
       });
       countBadge.textContent = `${codes.length} file${codes.length !== 1 ? 's' : ''}`;
