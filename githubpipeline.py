@@ -54,7 +54,7 @@ def ensure_output_dirs():
     os.makedirs('output/schedule', exist_ok=True)
     os.makedirs('output/pdf', exist_ok=True)
     os.makedirs('output/csv', exist_ok=True)
-    os.makedirs('output/table', exist_ok=True)
+    os.makedirs('output/tables', exist_ok=True)
 
 
 @click.group()
@@ -170,7 +170,7 @@ def extract():
 def compile():
     ensure_output_dirs()
     csvdir = os.listdir('output/csv')
-    codes = [code[:4] for code in csvdir if code.lower().endswith('.csv')]
+    codes = [code[:4] for code in csvdir if code.lower().endswith('.csv') and len(code) >= 4 and code[:4].isdigit()]
     subj = sorted(set(codes))
     for code in subj:
         subj_csv = []
@@ -183,7 +183,7 @@ def compile():
                 subj_csv.append(df)
         if subj_csv:
             subj_df = pd.concat(subj_csv, ignore_index=True)
-            subj_df.to_csv(f'output/table/{code}_all.csv', index=False)
+            subj_df.to_csv(f'output/tables/{code}_all.csv', index=False)
 
 
 @cli.command()

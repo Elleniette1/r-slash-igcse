@@ -3,148 +3,264 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IGCSE Marks Calculator</title>
+  <title>Calculator – r/IGCSE Grade Boundaries</title>
+  <link rel="stylesheet" href="site.css" />
   <style>
-    :root {
-      color-scheme: light;
-      font-family: Arial, sans-serif;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { color-scheme: light; }
     body {
       margin: 0;
-      background: #f4f6fb;
-      color: #1a1f36;
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--f-sans);
+      -webkit-font-smoothing: antialiased;
     }
     .container {
       max-width: 1080px;
       margin: 0 auto;
-      padding: 1rem;
+      padding: 2rem 1.25rem;
     }
     .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-      padding: 1rem;
-      margin-bottom: 1rem;
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
     }
-    h1, h2 {
-      margin: 0 0 .75rem;
+    .card-title {
+      font-family: var(--f-serif);
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin: 0 0 .3rem;
     }
+    .card-subtitle {
+      color: var(--c-ink-2);
+      font-size: .875rem;
+      margin: 0 0 1.1rem;
+      line-height: 1.6;
+    }
+    h1, h2 { font-family: var(--f-serif); margin: 0 0 .75rem; }
+    h1 { font-size: 1.55rem; font-weight: 700; }
+    h2 { font-size: 1.2rem; font-weight: 700; }
     .toolbar {
       display: flex;
       gap: .5rem;
       flex-wrap: wrap;
-      margin-bottom: .75rem;
+      align-items: center;
+      margin-bottom: .9rem;
     }
     button {
-      border: 0;
-      border-radius: 8px;
-      padding: .55rem .8rem;
-      font-weight: 600;
-      cursor: pointer;
-      background: #1f6feb;
+      border: 1px solid var(--c-ink);
+      background: var(--c-ink);
       color: #fff;
+      padding: .5rem 1rem;
+      font-family: var(--f-sans);
+      font-weight: 500;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity .15s;
     }
+    button:hover { opacity: .75; }
     button.secondary {
-      background: #5c6370;
+      background: transparent;
+      color: var(--c-ink);
+      border-color: var(--c-border-dark);
+      font-size: .68rem;
     }
-    .table-wrap {
-      overflow-x: auto;
-    }
+    button.secondary:hover { background: var(--c-bg); opacity: 1; }
+    .table-wrap { overflow-x: auto; }
     table {
       border-collapse: collapse;
       width: 100%;
       min-width: 720px;
+      font-size: .875rem;
     }
     th, td {
-      border-bottom: 1px solid #e6e9f0;
-      padding: .5rem;
+      border-bottom: 1px solid var(--c-border);
+      padding: .55rem .6rem;
       text-align: left;
       vertical-align: middle;
     }
-    input {
+    thead th {
+      font-family: var(--f-sans);
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      background: var(--c-bg);
+      position: sticky;
+      top: var(--header-h);
+    }
+    input, select {
       width: 100%;
       box-sizing: border-box;
-      border: 1px solid #ccd2df;
-      border-radius: 6px;
-      padding: .45rem;
+      border: 1px solid var(--c-border-dark);
+      padding: .42rem .55rem;
+      background: var(--c-surface);
+      font-family: var(--f-sans);
+      font-size: .875rem;
+      color: var(--c-ink);
+      border-radius: 0;
+      -webkit-appearance: none;
     }
-    .error input {
-      border-color: #d92d20;
-      background: #fff4f3;
+    input:focus, select:focus {
+      outline: 2px solid var(--c-ink);
+      outline-offset: -1px;
     }
-    .readonly {
-      font-weight: 700;
+    .error input, .error select {
+      border-color: #b91c1c;
+      background: #fef2f2;
     }
-    .status-pass {
-      color: #067647;
-      font-weight: 700;
+    .formula-section {
+      margin-top: .9rem;
+      border-left: 2px solid var(--c-border-dark);
+      padding-left: .85rem;
     }
-    .status-review {
-      color: #b54708;
-      font-weight: 700;
+    .formula-section h3 {
+      margin: 0 0 .25rem;
+      font-family: var(--f-sans);
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
     }
-    .status-invalid {
-      color: #d92d20;
-      font-weight: 700;
+    .formula {
+      background: var(--c-bg);
+      border: 1px solid var(--c-border);
+      padding: .5rem .75rem;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: .82rem;
+      color: var(--c-ink);
+      margin-top: .2rem;
     }
-    .error-box {
-      border-radius: 8px;
-      background: #fff4f3;
-      border: 1px solid #f4b4af;
-      padding: .6rem;
-      color: #b42318;
+    .formula-table {
+      min-width: unset;
+      width: auto;
       margin: .5rem 0 .75rem;
+      font-size: .82rem;
+    }
+    .formula-table th, .formula-table td { padding: .35rem .75rem; }
+    .readonly { font-weight: 600; }
+    .status-pass   { color: #15803d; font-weight: 600; }
+    .status-ungraded { color: #b91c1c; font-weight: 600; }
+    .status-invalid  { color: #b91c1c; font-weight: 600; }
+    .error-box {
+      border: 1px solid #fca5a5;
+      background: #fef2f2;
+      padding: .65rem .85rem;
+      color: #991b1b;
+      font-size: .85rem;
+      margin: .5rem 0 .9rem;
       display: none;
     }
     .metrics {
       display: grid;
-      grid-template-columns: repeat(2, minmax(160px, 1fr));
-      gap: .75rem;
-      margin-top: .75rem;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      gap: 1px;
+      background: var(--c-border);
+      border: 1px solid var(--c-border);
+      margin-top: 1.1rem;
     }
     .metric {
-      background: #f8f9fd;
-      border-radius: 8px;
-      padding: .6rem;
+      background: var(--c-surface);
+      padding: .85rem 1rem;
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
     }
     .metric strong {
       display: block;
-      font-size: 1.2rem;
+      font-family: var(--f-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: normal;
+      text-transform: none;
+      color: var(--c-ink);
       margin-top: .15rem;
     }
     .charts {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: .75rem;
+      gap: 1.25rem;
+    }
+    .chart-label {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--c-ink-2);
+      margin: 0 0 .5rem;
     }
     canvas {
       width: 100%;
       height: 220px;
-      border: 1px solid #e6e9f0;
-      border-radius: 10px;
-      background: #fff;
+      border: 1px solid var(--c-border);
+      background: var(--c-surface);
     }
+    /* Session select inline */
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .04em;
+    }
+    .toolbar label select { width: auto; font-size: .8rem; }
   </style>
 </head>
 <body>
+  <header class="site-header">
+    <a class="site-brand" href="index.html">r/IGCSE Grade Boundaries</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="calculator.html" class="active">Calculator</a>
+      <a href="thresholds.html">Thresholds</a>
+      <a href="downloads.html">CSV Downloads</a>
+    </nav>
+  </header>
   <div class="container">
     <div class="card">
-      <h1>IGCSE Marks Calculator</h1>
-      <p>Enter or edit marks to instantly convert to PUM, view grade/status, and track trends.</p>
+      <h1>Grade Calculator</h1>
+      <p class="card-subtitle">Enter subject code, option, and your total combined raw mark. Grade is determined by direct comparison to CAIE published boundaries.</p>
       <div id="errors" class="error-box" aria-live="polite" role="alert"></div>
       <div class="toolbar">
-        <button id="addRow" type="button">Add Subject Row</button>
+        <button id="addRow" type="button">+ Add Subject</button>
+        <label>
+          Session:
+          <select id="sessionSelect">
+            <option value="">Latest (auto)</option>
+            <option value="2025 on">2025 ON</option>
+            <option value="2025 mj">2025 MJ</option>
+            <option value="2025 fm">2025 FM</option>
+            <option value="2024 on">2024 ON</option>
+            <option value="2024 mj">2024 MJ</option>
+            <option value="2024 fm">2024 FM</option>
+            <option value="2023 on">2023 ON</option>
+            <option value="2023 mj">2023 MJ</option>
+            <option value="2023 fm">2023 FM</option>
+            <option value="2022 on">2022 ON</option>
+            <option value="2022 mj">2022 MJ</option>
+            <option value="2022 fm">2022 FM</option>
+          </select>
+        </label>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Subject</th>
+              <th>Subject Code</th>
+              <th>Option</th>
               <th>Raw Mark</th>
               <th>Max Mark</th>
-              <th>Converted PUM</th>
+              <th>PUM</th>
               <th>Grade</th>
-              <th>Status</th>
+              <th>Result (Session)</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -153,37 +269,57 @@
       </div>
       <div class="metrics">
         <div class="metric">Valid Subjects<strong id="subjectCount">0</strong></div>
+        <div class="metric">Passed (A*–E)<strong id="gradedCount">0</strong></div>
         <div class="metric">Average PUM<strong id="avgPum">0.0</strong></div>
-        <div class="metric">Total Raw Marks<strong id="totalRaw">0</strong></div>
-        <div class="metric">Overall Status<strong id="overallStatus">N/A</strong></div>
+        <div class="metric">Overall Result<strong id="overallStatus">N/A</strong></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>Marks Graphs</h2>
+      <h2>Marks Charts</h2>
       <div class="charts">
         <div>
-          <p><strong>Raw Marks by Subject</strong></p>
+          <p class="chart-label">Raw Marks by Subject</p>
           <canvas id="rawChart" width="500" height="220" role="img" aria-label="Bar chart showing raw marks by subject"></canvas>
         </div>
         <div>
-          <p><strong>PUM Trend</strong></p>
-          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing PUM trend across subjects"></canvas>
+          <p class="chart-label">Avg Historical Grade Boundary %</p>
+          <canvas id="pumChart" width="500" height="220" role="img" aria-label="Line chart showing average historical grade boundary percentage by subject"></canvas>
         </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>How PUM is Calculated</h2>
+      <table class="formula-table">
+        <thead>
+          <tr><th>Grade</th><th>PUM range</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>A*</strong></td><td>90 – 100</td><td>A-Level only</td></tr>
+          <tr><td><strong>A</strong></td><td>80 – 89 (AL) &nbsp;/&nbsp; 80 – 100 (AS)</td><td>AS has no A* band</td></tr>
+          <tr><td><strong>B</strong></td><td>70 – 79</td><td></td></tr>
+          <tr><td><strong>C</strong></td><td>60 – 69</td><td></td></tr>
+          <tr><td><strong>D</strong></td><td>50 – 59</td><td></td></tr>
+          <tr><td><strong>E</strong></td><td>40 – 49</td><td></td></tr>
+          <tr><td><strong>U</strong></td><td>0 – 39</td><td>Ungraded</td></tr>
+        </tbody>
+      </table>
+      <div class="formula-section">
+        <h3>A* grade (A-Level only, PUM ≥ 90)</h3>
+        <div class="formula">PUM = 90 + (Raw − A* threshold) × 10 / (Max mark − A* threshold)</div>
+      </div>
+      <div class="formula-section">
+        <h3>All other grades (PUM &lt; 90, or &lt; 80 for AS)</h3>
+        <p style="margin:.3rem 0 0">The <em>grade above threshold</em> is the next grade's boundary (e.g. for grade B it is the A threshold; for grade A on A-Level it is the A* threshold).</p>
+        <div class="formula">PUM = Grade lower PUM + (Raw − Grade threshold) × 10 / (Grade above threshold − Grade threshold)</div>
       </div>
     </div>
   </div>
 
   <script>
-    const defaults = {
-      "Mathematics": 200,
-      "English Language": 160,
-      "Physics": 160,
-      "Chemistry": 160,
-      "Biology": 160,
-      "Computer Science": 150
-    };
-
+    const TABLES_BASE_PATH = "../output/tables";
+    const thresholdsCache = new Map();
     const marksBody = document.getElementById("marksBody");
     const errorBox = document.getElementById("errors");
     const MIN_CHART_SCALE = 1;
@@ -192,28 +328,341 @@
     const MAX_LABEL_LENGTH = 8;
     const DATA_POINT_RADIUS = 3.5;
 
-    function gradeFromPum(pum) {
-      if (pum >= 90) return "A*";
-      if (pum >= 80) return "A";
-      if (pum >= 70) return "B";
-      if (pum >= 60) return "C";
-      if (pum >= 50) return "D";
-      if (pum >= 40) return "E";
-      if (pum >= 30) return "F";
-      if (pum >= 20) return "G";
+    const SUBJECT_CODES = [
+      "8021","8022","8027","8028","8041","8238","8281","8291","8386","8665",
+      "8673","8675","8679","8680","8681","8682","8683","8684","8685","8686",
+      "8687","8689","8695","9011","9084","9093","9231","9239","9274","9395",
+      "9396","9479","9481","9482","9483","9484","9487","9488","9489","9607",
+      "9609","9618","9626","9631","9676","9679","9680","9686","9687","9689",
+      "9693","9694","9695","9696","9699","9700","9701","9702","9705","9706",
+      "9708","9709","9715","9716","9717","9718","9719","9844","9868","9897",
+      "9898","9980","9990"
+    ];
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === "\"" && inQuotes && next === "\"") {
+          field += "\"";
+          i += 1;
+          continue;
+        }
+        if (char === "\"") {
+          inQuotes = !inQuotes;
+          continue;
+        }
+        if (char === "," && !inQuotes) {
+          row.push(field);
+          field = "";
+          continue;
+        }
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i += 1;
+          row.push(field);
+          if (row.some((value) => value.trim() !== "")) {
+            rows.push(row);
+          }
+          row = [];
+          field = "";
+          continue;
+        }
+        field += char;
+      }
+      row.push(field);
+      if (row.some((value) => value.trim() !== "")) {
+        rows.push(row);
+      }
+      return rows;
+    }
+
+    function parseThresholdNumber(value) {
+      if (value === null || value === undefined) return NaN;
+      const cleaned = String(value).trim().replace(/,/g, "");
+      if (!cleaned || cleaned === "–" || cleaned === "-") return NaN;
+      const parsed = Number(cleaned);
+      return Number.isFinite(parsed) ? parsed : NaN;
+    }
+
+    function monthRank(month) {
+      const key = String(month || "").trim().toLowerCase();
+      if (key === "fm") return 1;
+      if (key === "mj") return 2;
+      if (key === "on") return 3;
+      return 0;
+    }
+
+    function normalizeCsvRows(csvRows) {
+      if (!csvRows.length) return [];
+      const headers = csvRows[0].map((header) => String(header || "").trim().toLowerCase());
+      return csvRows.slice(1).map((values) => {
+        const record = {};
+        headers.forEach((header, index) => {
+          record[header] = String(values[index] ?? "").trim();
+        });
+        return record;
+      });
+    }
+
+    async function getThresholdRows(subjectCode) {
+      const key = subjectCode.trim().toUpperCase();
+      if (!thresholdsCache.has(key)) {
+        thresholdsCache.set(key, (async () => {
+          const response = await fetch(`${TABLES_BASE_PATH}/${key}_all.csv`, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`No threshold table found for subject code ${key}.`);
+          }
+          const text = await response.text();
+          return normalizeCsvRows(parseCsv(text));
+        })());
+      }
+      return thresholdsCache.get(key);
+    }
+
+    function selectThresholdRow(rows, optionCode, session) {
+      const option = optionCode.trim().toUpperCase();
+      const matching = rows.filter((row) => String(row.option || "").trim().toUpperCase() === option);
+      if (!matching.length) return null;
+      if (session) {
+        const parts = session.trim().split(/\s+/);
+        const year = parts[0];
+        const month = (parts[1] || "").toLowerCase();
+        const exact = matching.find((r) => r.year === year && (r.month || "").toLowerCase() === month);
+        if (exact) return exact;
+      }
+      matching.sort((a, b) => {
+        const yearA = Number(a.year) || 0;
+        const yearB = Number(b.year) || 0;
+        if (yearA !== yearB) return yearB - yearA;
+        return monthRank(b.month) - monthRank(a.month);
+      });
+      return matching[0];
+    }
+
+    async function populateOptionDropdown(row, subjectCode, selectedOption) {
+      const select = row.querySelector(".option-code");
+      select.innerHTML = "";
+      const blank = document.createElement("option");
+      blank.value = "";
+      blank.textContent = subjectCode ? "– select –" : "– select subject first –";
+      select.appendChild(blank);
+      if (!subjectCode) return;
+      try {
+        const rows = await getThresholdRows(subjectCode);
+        const optionSet = new Set();
+        rows.forEach((r) => {
+          const yr = Number(r.year);
+          const mo = (r.month || "").trim().toLowerCase();
+          if (yr >= 2000 && (mo === "mj" || mo === "on" || mo === "fm")) {
+            optionSet.add((r.option || "").trim().toUpperCase());
+          }
+        });
+        [...optionSet].sort().forEach((opt) => {
+          const o = document.createElement("option");
+          o.value = opt;
+          o.textContent = opt;
+          if (opt === selectedOption.toUpperCase()) o.selected = true;
+          select.appendChild(o);
+        });
+      } catch {
+        // Subject not found — leave dropdown with only the blank option.
+      }
+    }
+
+    function gradeFromThresholds(raw, thresholdRow) {
+      const boundaries = [
+        ["A*", parseThresholdNumber(thresholdRow["a*"])],
+        ["A", parseThresholdNumber(thresholdRow.a)],
+        ["B", parseThresholdNumber(thresholdRow.b)],
+        ["C", parseThresholdNumber(thresholdRow.c)],
+        ["D", parseThresholdNumber(thresholdRow.d)],
+        ["E", parseThresholdNumber(thresholdRow.e)]
+      ];
+      for (const [grade, threshold] of boundaries) {
+        if (Number.isFinite(threshold) && raw >= threshold) {
+          return grade;
+        }
+      }
       return "U";
     }
 
-    function addRow(subject = "", raw = "", max = "") {
+    function rawToPum(raw, thresholdRow, max) {
+      const astar = parseThresholdNumber(thresholdRow["a*"]);
+      const a = parseThresholdNumber(thresholdRow.a);
+      const b = parseThresholdNumber(thresholdRow.b);
+      const c = parseThresholdNumber(thresholdRow.c);
+      const d = parseThresholdNumber(thresholdRow.d);
+      const e = parseThresholdNumber(thresholdRow.e);
+      const hasAstar = Number.isFinite(astar);
+
+      // A* band (AL only): PUM = 90 + (raw - A*) * 10 / (max - A*)
+      // If max equals the A* threshold (malformed data), award PUM 100 rather than dividing by zero.
+      if (hasAstar && raw >= astar) {
+        return max > astar ? 90 + (raw - astar) * 10 / (max - astar) : 100;
+      }
+
+      // A band: upper boundary is A* threshold (AL) or max mark (AS)
+      if (Number.isFinite(a) && raw >= a) {
+        const upper = hasAstar ? astar : max;
+        const upperPum = hasAstar ? 90 : 100;
+        return upper > a ? 80 + (raw - a) * (upperPum - 80) / (upper - a) : upperPum;
+      }
+
+      // B band
+      if (Number.isFinite(b) && raw >= b) {
+        return Number.isFinite(a) && a > b ? 70 + (raw - b) * 10 / (a - b) : 80;
+      }
+
+      // C band
+      if (Number.isFinite(c) && raw >= c) {
+        return Number.isFinite(b) && b > c ? 60 + (raw - c) * 10 / (b - c) : 70;
+      }
+
+      // D band
+      if (Number.isFinite(d) && raw >= d) {
+        return Number.isFinite(c) && c > d ? 50 + (raw - d) * 10 / (c - d) : 60;
+      }
+
+      // E band
+      if (Number.isFinite(e) && raw >= e) {
+        return Number.isFinite(d) && d > e ? 40 + (raw - e) * 10 / (d - e) : 50;
+      }
+
+      // U band: linear from 0 to 40 below E threshold
+      return Number.isFinite(e) && e > 0 ? raw * 40 / e : 0;
+    }
+
+    function avgGradeThresholdPct(thresholdRows, optionCode, grade) {
+      const option = optionCode.trim().toUpperCase();
+      const matching = thresholdRows.filter((r) => String(r.option || "").trim().toUpperCase() === option);
+      const percentages = [];
+      for (const r of matching) {
+        const maxMark = parseThresholdNumber(r["maximum mark after weighting"]);
+        if (!Number.isFinite(maxMark) || maxMark <= 0) continue;
+        let threshold;
+        if (grade === "A*") threshold = parseThresholdNumber(r["a*"]);
+        else if (grade === "U") threshold = 0;
+        else threshold = parseThresholdNumber(r[grade.toLowerCase()]);
+        if (Number.isFinite(threshold)) {
+          percentages.push((threshold / maxMark) * 100);
+        }
+      }
+      if (!percentages.length) return null;
+      return percentages.reduce((sum, v) => sum + v, 0) / percentages.length;
+    }
+
+    // --- Max mark tooltip ---
+    const maxMarkTooltipEl = document.createElement("div");
+    maxMarkTooltipEl.id = "maxMarkTooltip";
+    Object.assign(maxMarkTooltipEl.style, {
+      display: "none",
+      position: "fixed",
+      zIndex: "1000",
+      background: "#ffffff",
+      border: "1px solid #e0ddd5",
+      borderRadius: "0",
+      padding: ".6rem .75rem",
+      boxShadow: "0 4px 16px rgba(0,0,0,.08)",
+      maxWidth: "700px",
+      overflowX: "auto",
+      fontFamily: "'SFMono-Regular', Consolas, monospace",
+      fontSize: ".78rem",
+      whiteSpace: "pre",
+      lineHeight: "1.5"
+    });
+    document.body.appendChild(maxMarkTooltipEl);
+
+    function hideMaxMarkTooltip() {
+      maxMarkTooltipEl.style.display = "none";
+    }
+
+    async function showMaxMarkTooltip(inputEl, tableRow) {
+      const subjectCode = tableRow.querySelector(".subject-code").value.trim().toUpperCase();
+      const optionCode = tableRow.querySelector(".option-code").value.trim().toUpperCase();
+      if (!subjectCode || !optionCode) return;
+
+      let thresholdRows;
+      try {
+        thresholdRows = await getThresholdRows(subjectCode);
+      } catch {
+        return;
+      }
+
+      const option = optionCode.trim().toUpperCase();
+      let rows = thresholdRows.filter((r) => String(r.option || "").trim().toUpperCase() === option);
+      rows.sort((a, b) => {
+        const yA = Number(a.year) || 0;
+        const yB = Number(b.year) || 0;
+        if (yA !== yB) return yB - yA;
+        return monthRank(b.month) - monthRank(a.month);
+      });
+      if (!rows.length) return;
+
+      const session = document.getElementById("sessionSelect").value;
+      const matchingRow = selectThresholdRow(thresholdRows, optionCode, session);
+      let centerIdx = matchingRow
+        ? rows.findIndex((r) => r.year === matchingRow.year && r.month === matchingRow.month)
+        : 0;
+      if (centerIdx < 0) centerIdx = 0;
+
+      const start = Math.max(0, centerIdx - 3);
+      const end = Math.min(rows.length, centerIdx + 4);
+      const displayRows = rows.slice(start, end);
+
+      const cols   = ["year", "month", "a*", "a", "b", "c", "d", "e", "maximum mark after weighting"];
+      const labels = ["Year", "Month", "A*",  "A", "B", "C", "D", "E", "Max Mark"];
+      const widths = labels.map((lbl, i) => {
+        const maxData = Math.max(...displayRows.map((r) => String(r[cols[i]] ?? "").length));
+        return Math.max(lbl.length, maxData);
+      });
+
+      const headerRow = "| " + labels.map((lbl, i) => lbl.padEnd(widths[i])).join(" | ") + " |";
+      const sepRow    = "| " + widths.map((w) => "-".repeat(w)).join(" | ") + " |";
+      const dataRows  = displayRows.map((r, idx) => {
+        const marker = (start + idx) === centerIdx ? ">" : " ";
+        return marker + "| " + cols.map((col, i) => String(r[col] ?? "").padEnd(widths[i])).join(" | ") + " |";
+      });
+
+      maxMarkTooltipEl.textContent = [headerRow, sepRow, ...dataRows].join("\n");
+      maxMarkTooltipEl.style.display = "block";
+      const rect = inputEl.getBoundingClientRect();
+      maxMarkTooltipEl.style.top  = `${rect.bottom + 4}px`;
+      maxMarkTooltipEl.style.left = `${rect.left}px`;
+    }
+
+    async function addRow(subjectCode = "", optionCode = "", raw = "", max = "") {
       const row = document.createElement("tr");
+
       const subjectCell = document.createElement("td");
-      const subjectInput = document.createElement("input");
-      subjectInput.type = "text";
-      subjectInput.className = "subject";
-      subjectInput.placeholder = "e.g. Mathematics";
-      subjectInput.setAttribute("aria-label", "Subject name");
-      subjectInput.value = subject;
-      subjectCell.appendChild(subjectInput);
+      const subjectSelect = document.createElement("select");
+      subjectSelect.className = "subject-code";
+      subjectSelect.setAttribute("aria-label", "Subject code");
+      const subjectBlank = document.createElement("option");
+      subjectBlank.value = "";
+      subjectBlank.textContent = "– select –";
+      subjectSelect.appendChild(subjectBlank);
+      SUBJECT_CODES.forEach((code) => {
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = code;
+        if (code === subjectCode.toUpperCase()) opt.selected = true;
+        subjectSelect.appendChild(opt);
+      });
+      subjectCell.appendChild(subjectSelect);
+
+      const optionCell = document.createElement("td");
+      const optionSelect = document.createElement("select");
+      optionSelect.className = "option-code";
+      optionSelect.setAttribute("aria-label", "Option code");
+      const optionBlank = document.createElement("option");
+      optionBlank.value = "";
+      optionBlank.textContent = subjectCode ? "– select –" : "– select subject first –";
+      optionSelect.appendChild(optionBlank);
+      optionCell.appendChild(optionSelect);
 
       const rawCell = document.createElement("td");
       const rawInput = document.createElement("input");
@@ -255,22 +704,19 @@
       removeButton.textContent = "Remove";
       actionCell.appendChild(removeButton);
 
-      row.append(subjectCell, rawCell, maxCell, pumCell, gradeCell, statusCell, actionCell);
+      row.append(subjectCell, optionCell, rawCell, maxCell, pumCell, gradeCell, statusCell, actionCell);
       marksBody.appendChild(row);
 
-      row.querySelector(".subject").addEventListener("input", () => {
-        const subjectInput = row.querySelector(".subject");
-        const maxInput = row.querySelector(".max");
-        const maybeMax = defaults[subjectInput.value.trim()];
-        if (maybeMax && !maxInput.value) {
-          maxInput.value = maybeMax;
-        }
-        recalculate();
+      subjectSelect.addEventListener("change", () => {
+        populateOptionDropdown(row, subjectSelect.value, "").then(recalculate);
       });
-
+      optionSelect.addEventListener("change", recalculate);
       row.querySelectorAll("input").forEach((input) => {
         input.addEventListener("input", recalculate);
       });
+
+      maxInput.addEventListener("focus", () => showMaxMarkTooltip(maxInput, row));
+      maxInput.addEventListener("blur", () => setTimeout(hideMaxMarkTooltip, 150));
 
       row.querySelector(".remove").addEventListener("click", () => {
         row.remove();
@@ -279,22 +725,69 @@
         }
         recalculate();
       });
+
+      if (subjectCode) {
+        return populateOptionDropdown(row, subjectCode.toUpperCase(), optionCode.toUpperCase());
+      }
+      return Promise.resolve();
     }
 
-    function recalculate() {
+    let recalculateRunId = 0;
+
+    async function recalculate() {
+      const runId = ++recalculateRunId;
       const rows = Array.from(marksBody.querySelectorAll("tr"));
       const errors = [];
       const validRows = [];
+      const session = document.getElementById("sessionSelect").value;
 
-      rows.forEach((row, index) => {
+      await Promise.all(rows.map(async (row, index) => {
         row.classList.remove("error");
-        const subject = row.querySelector(".subject").value.trim() || `Subject ${index + 1}`;
+        const subjectCode = row.querySelector(".subject-code").value.trim().toUpperCase();
+        const optionCode = row.querySelector(".option-code").value.trim().toUpperCase();
+        const label = `${subjectCode || `Subject ${index + 1}`}${optionCode ? `-${optionCode}` : ""}`;
         const raw = Number(row.querySelector(".raw").value);
-        const max = Number(row.querySelector(".max").value);
+        const maxInput = row.querySelector(".max");
+        let max = Number(maxInput.value);
         const pumCell = row.querySelector(".pum");
         const gradeCell = row.querySelector(".grade");
         const statusCell = row.querySelector(".status");
-        row.querySelector(".remove").setAttribute("aria-label", `Remove ${subject} row`);
+        row.querySelector(".remove").setAttribute("aria-label", `Remove ${label} row`);
+
+        if (!subjectCode || !optionCode) {
+          row.classList.add("error");
+          pumCell.textContent = "Invalid";
+          gradeCell.textContent = "-";
+          statusCell.textContent = "Add code/option";
+          statusCell.className = "readonly status status-invalid";
+          errors.push(`${label}: enter both subject code and option.`);
+          return;
+        }
+
+        let thresholdRow;
+        let thresholdRows;
+        try {
+          thresholdRows = await getThresholdRows(subjectCode);
+          thresholdRow = selectThresholdRow(thresholdRows, optionCode, session);
+          if (!thresholdRow) {
+            throw new Error(`No threshold row found for option ${optionCode}${session ? ` in session ${session.toUpperCase()}` : ""}.`);
+          }
+          if (!maxInput.value) {
+            const tableMax = parseThresholdNumber(thresholdRow["maximum mark after weighting"]);
+            if (Number.isFinite(tableMax)) {
+              maxInput.value = String(tableMax);
+              max = tableMax;
+            }
+          }
+        } catch (error) {
+          row.classList.add("error");
+          pumCell.textContent = "Invalid";
+          gradeCell.textContent = "-";
+          statusCell.textContent = "Threshold missing";
+          statusCell.className = "readonly status status-invalid";
+          errors.push(`${label}: ${error.message}`);
+          return;
+        }
 
         if (!Number.isFinite(raw) || !Number.isFinite(max) || max <= 0 || raw < 0 || raw > max) {
           row.classList.add("error");
@@ -302,23 +795,27 @@
           gradeCell.textContent = "-";
           statusCell.textContent = "Fix input";
           statusCell.className = "readonly status status-invalid";
-          errors.push(`${subject}: enter a valid raw mark between 0 and max mark.`);
+          errors.push(`${label}: enter a valid raw mark between 0 and max mark.`);
           return;
         }
 
-        // Percentage Uniform Mark (PUM): (raw / max) * 100 rounded to 1 decimal place.
-        // Multiplying by 1000 then dividing by 10 keeps a numeric value while rounding to 0.1.
-        const pum = Math.round((raw / max) * 1000) / 10;
-        const grade = gradeFromPum(pum);
-        const status = pum >= 40 ? "Pass" : "Review";
+        const pum = Math.min(100, Math.max(0, rawToPum(raw, thresholdRow, max)));
+        const grade = gradeFromThresholds(raw, thresholdRow);
+        const isGraded = grade !== "U";
+        const statusLabel = isGraded ? "Pass" : "U – Ungraded";
+        const resultSession = `${thresholdRow.year || "?"} ${(thresholdRow.month || "").toUpperCase()}`;
+
+        const avgGradePercent = avgGradeThresholdPct(thresholdRows, optionCode, grade);
 
         pumCell.textContent = pum.toFixed(1);
         gradeCell.textContent = grade;
-        statusCell.textContent = status;
-        statusCell.className = `readonly status ${status === "Pass" ? "status-pass" : "status-review"}`;
+        statusCell.textContent = `${statusLabel} (${resultSession.trim()})`;
+        statusCell.className = `readonly status ${isGraded ? "status-pass" : "status-ungraded"}`;
 
-        validRows.push({ subject, raw, pum });
-      });
+        validRows.push({ subject: label, raw, pum, grade, avgGradePercent });
+      }));
+
+      if (runId !== recalculateRunId) return;
 
       if (errors.length) {
         errorBox.style.display = "block";
@@ -339,20 +836,22 @@
       }
 
       const subjectCount = validRows.length;
-      const totalRaw = validRows.reduce((sum, row) => sum + row.raw, 0);
+      const gradedCount = validRows.filter((row) => row.grade !== "U").length;
+      const ungradedCount = subjectCount - gradedCount;
       const avgPum = subjectCount ? validRows.reduce((sum, row) => sum + row.pum, 0) / subjectCount : 0;
 
       document.getElementById("subjectCount").textContent = String(subjectCount);
-      document.getElementById("totalRaw").textContent = totalRaw.toFixed(1);
+      document.getElementById("gradedCount").textContent = String(gradedCount);
       document.getElementById("avgPum").textContent = avgPum.toFixed(1);
       document.getElementById("overallStatus").textContent = !subjectCount
         ? "N/A"
-        : avgPum >= 40
-          ? "On Track"
-          : "Needs Improvement";
+        : ungradedCount === 0
+          ? "All Passed"
+          : `${ungradedCount} Ungraded`;
 
-      drawBarChart("rawChart", validRows.map((r) => r.subject), validRows.map((r) => r.raw), "#1f6feb");
-      drawLineChart("pumChart", validRows.map((r) => r.subject), validRows.map((r) => r.pum), "#7a3cff");
+      drawBarChart("rawChart", validRows.map((r) => r.subject), validRows.map((r) => r.raw), "#111111");
+      const boundaryRows = validRows.filter((r) => r.avgGradePercent !== null);
+      drawLineChart("pumChart", boundaryRows.map((r) => r.subject), boundaryRows.map((r) => r.avgGradePercent), "#1e3a5f");
     }
 
     function drawBarChart(canvasId, labels, values, color) {
@@ -364,7 +863,8 @@
 
       if (!values.length) {
         canvas.setAttribute("aria-label", "Raw marks chart: no valid rows to plot");
-        ctx.fillStyle = "#5c6370";
+        ctx.fillStyle = "#999999";
+        ctx.font = "12px Inter, system-ui, sans-serif";
         ctx.fillText("No valid rows to plot.", 12, 30);
         return;
       }
@@ -382,8 +882,8 @@
 
         ctx.fillStyle = color;
         ctx.fillRect(x, y, barWidth, barHeight);
-        ctx.fillStyle = "#1a1f36";
-        ctx.font = "12px Arial";
+        ctx.fillStyle = "#111111";
+        ctx.font = "11px Inter, system-ui, sans-serif";
         ctx.fillText(String(v.toFixed(1)), x, y - 4);
         ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x, h - 10);
       });
@@ -397,12 +897,13 @@
       ctx.clearRect(0, 0, w, h);
 
       if (!values.length) {
-        canvas.setAttribute("aria-label", "PUM trend chart: no valid rows to plot");
-        ctx.fillStyle = "#5c6370";
+        canvas.setAttribute("aria-label", "Avg grade boundary chart: no valid rows to plot");
+        ctx.fillStyle = "#999999";
+        ctx.font = "12px Inter, system-ui, sans-serif";
         ctx.fillText("No valid rows to plot.", 12, 30);
         return;
       }
-      canvas.setAttribute("aria-label", "PUM trend chart across subjects");
+      canvas.setAttribute("aria-label", "Avg grade boundary chart across subjects");
 
       const padding = 30;
       const xStep = values.length > 1 ? (w - padding * 2) / (values.length - 1) : 0;
@@ -425,22 +926,25 @@
         ctx.beginPath();
         ctx.arc(x, y, DATA_POINT_RADIUS, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#1a1f36";
-        ctx.font = "12px Arial";
+        ctx.fillStyle = "#111111";
+        ctx.font = "11px Inter, system-ui, sans-serif";
         ctx.fillText(v.toFixed(1), x - 10, y - 8);
         ctx.fillText(labels[i].slice(0, MAX_LABEL_LENGTH), x - 12, h - 10);
       });
     }
 
     document.getElementById("addRow").addEventListener("click", () => {
-      addRow();
-      recalculate();
+      addRow().then(recalculate);
     });
 
-    addRow("Mathematics", "156", "200");
-    addRow("Physics", "123", "160");
-    addRow("English Language", "110", "160");
-    recalculate();
+    document.getElementById("sessionSelect").addEventListener("change", recalculate);
+
+    Promise.all([
+      addRow("9709", "AY", "188", "250"),
+      addRow("9709", "CY", "170", "250"),
+      addRow("9709", "S4", "90", "125")
+    ]).then(recalculate);
   </script>
+  <script src="site.js"></script>
 </body>
 </html>

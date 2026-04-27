@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>r/IGCSE Grade Boundaries</title>
+  <link rel="stylesheet" href="site.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root { color-scheme: light; }
+    body {
+      margin: 0;
+      background: var(--c-bg);
+      color: var(--c-ink);
+      font-family: var(--f-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Hero */
+    .hero {
+      background: var(--c-ink);
+      color: #fff;
+      padding: 5rem 1.5rem 4.5rem;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      font-family: var(--f-sans);
+      font-size: .7rem;
+      font-weight: 500;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.45);
+      margin: 0 0 1.1rem;
+    }
+    .hero h1 {
+      margin: 0 0 1.1rem;
+      font-family: var(--f-serif);
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -.01em;
+    }
+    .hero p {
+      margin: 0 auto;
+      max-width: 520px;
+      color: rgba(255,255,255,.55);
+      font-size: .95rem;
+      line-height: 1.75;
+      font-weight: 300;
+    }
+    /* Divider */
+    .section-rule {
+      border: none;
+      border-top: 1px solid var(--c-border);
+      margin: 0;
+    }
+    /* Container */
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 3.5rem 1.5rem;
+    }
+    .section-label {
+      font-family: var(--f-sans);
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--c-ink-3);
+      margin: 0 0 2rem;
+    }
+    /* Feature grid */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--c-border);
+      border: 1px solid var(--c-border);
+    }
+    .feature-card {
+      background: var(--c-surface);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+    .feature-card h2 {
+      margin: 0;
+      font-family: var(--f-serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .feature-card p {
+      margin: 0;
+      color: var(--c-ink-2);
+      font-size: .875rem;
+      line-height: 1.7;
+      flex: 1;
+    }
+    .feature-card a.btn {
+      display: inline-block;
+      margin-top: .75rem;
+      background: var(--c-ink);
+      color: #fff;
+      text-decoration: none;
+      padding: .55rem 1.1rem;
+      font-family: var(--f-sans);
+      font-weight: 500;
+      font-size: .72rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      align-self: flex-start;
+      transition: opacity .15s;
+    }
+    .feature-card a.btn:hover { opacity: .75; }
+    footer {
+      text-align: center;
+      color: var(--c-ink-3);
+      font-size: .75rem;
+      letter-spacing: .04em;
+      padding: 2.5rem 1rem 3rem;
+      border-top: 1px solid var(--c-border);
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="site-brand" href="index.html">r/IGCSE Grade Boundaries</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="site-nav" id="siteNav">
+      <a href="calculator.html">Calculator</a>
+      <a href="thresholds.html">Thresholds</a>
+      <a href="downloads.html">CSV Downloads</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <p class="hero-eyebrow">Open Data · CAIE A-Level &amp; AS-Level</p>
+    <h1>r/IGCSE<br>Grade Boundaries</h1>
+    <p>Explore historical threshold data, calculate your grades from raw marks, and download compiled CSV files.</p>
+  </div>
+
+  <hr class="section-rule" />
+
+  <div class="container">
+    <p class="section-label">Tools</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h2>Grade Calculator</h2>
+        <p>Enter your subject codes, option codes, and raw marks to instantly calculate your PUM and predicted grade using the latest CAIE published thresholds.</p>
+        <a class="btn" href="calculator.html">Open Calculator</a>
+      </div>
+      <div class="feature-card">
+        <h2>Historical Thresholds</h2>
+        <p>Browse the full history of grade boundaries for any CAIE subject across all exam sessions, with trend visualisations and summary statistics.</p>
+        <a class="btn" href="thresholds.html">Browse Thresholds</a>
+      </div>
+      <div class="feature-card">
+        <h2>CSV Downloads</h2>
+        <p>Download compiled grade boundary CSV files for any subject. Data is sourced from CAIE published documents and updated monthly via automated pipeline.</p>
+        <a class="btn" href="downloads.html">Download CSVs</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Data sourced from CAIE published grade threshold documents. Updated monthly via automated pipeline.
+  </footer>
+
+  <script src="site.js"></script>
+</body>
+</html>
